@@ -47,8 +47,14 @@ const soundLabel = () => (state.muted ? 'Sound off' : 'Sound on')
 
 const VERSION = 'v1.1'
 
-/** The hero as the menu cursor (hidden on items that aren't selected). */
-const CURSOR = '<span class="cursor"></span>'
+/** Pixel arrow pointing at the selected item: o = outline, y = yellow. */
+const ARROW_ROWS = ['oo.....', 'oyo....', 'oyyo...', 'oyyyo..', 'oyyyyo.', 'oyyyo..', 'oyyo...', 'oyo....', 'oo.....']
+const ARROW_RECTS = ARROW_ROWS.flatMap((row, y) =>
+  [...row].map((c, x) => (c === '.' ? '' : `<rect x="${x}" y="${y}" width="1" height="1" class="${c}"/>`)),
+).join('')
+
+/** The menu cursor, shown only on the selected item. */
+const CURSOR = `<svg class="cursor" viewBox="0 0 7 9" width="14" height="18" shape-rendering="crispEdges">${ARROW_RECTS}</svg>`
 
 function menuItem(label: string, attrs: string, cls = '') {
   return `<button class="menu-item ${cls}" ${attrs}>${CURSOR}<span class="label">${label}</span></button>`
