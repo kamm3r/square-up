@@ -52,7 +52,7 @@ src/              the game (TypeScript)
 public/           sounds and fonts
 lib/              third-party code, like a C/C++ include folder (see tools/fetch-deps.sh)
 build/            compiler output, loaded by index.html
-tools/            dependency download script and the level-check bot
+tools/            dependency download script, dev server and the level-check bot
 launcher/         the downloadable program (Go), built by `make dist`
 docs/             screenshots for this README
 ```
