@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <title>Square Up</title>
     <link rel="icon" href="public/icon.svg" />
-    <link rel="stylesheet" href="style.css" />
+    <!-- ?v=2: a new address, so browsers drop copies of these saved before the dev server sent no-cache -->
+    <link rel="stylesheet" href="style.css?v=2" />
     <!-- Tells the browser where bare imports like `from 'three'` live: the vendored copies in lib/ -->
     <script type="importmap">
       {
@@ -43,6 +44,6 @@
       }, 6000)
     </script>
     <!-- compiled from src/main.ts by `make` -->
-    <script type="module" src="build/src/main.js"></script>
+    <script type="module" src="build/src/main.js?v=2"></script>
   </body>
 </html>
