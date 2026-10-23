@@ -42,21 +42,83 @@ const soundLabel = () => (state.muted ? 'Sound off' : 'Sound on')
 
 // ---------- screens
 
-// ---------- title menus: text items in a column, the selected one marked by a star either side
+// ---------- title menus, styled after Hollow Knight's: an engraved-looking logo between curly
+// ornaments, a misty background, and a plain text menu whose selected item gets a marker either side
 
 const VERSION = 'v1.1'
 
-function menuItem(label: string, attrs: string, cls = '') {
-  const mark = `<span class="mark">${starIcon(true, 12)}</span>`
-  return `<button class="menu-item ${cls}" ${attrs}>${mark}<span class="label">${label}</span>${mark}</button>`
+/** One half of a scroll ornament (the right side); the left side is the same, mirrored. */
+const SCROLL_TOP = `
+  <path d="M14 30 C60 30 78 12 116 15 C146 17 148 42 128 42 C113 42 113 28 126 28"/>
+  <path d="M116 15 C168 9 196 32 238 27 C262 24 268 8 252 7 C241 6 240 18 250 18"/>
+  <path d="M238 27 C252 29 262 34 276 31"/>
+  <circle cx="288" cy="30" r="3.5" class="dot"/>`
+
+const SCROLL_BOTTOM = `
+  <path d="M46 26 C86 26 104 6 146 10 C180 13 182 44 158 44 C140 44 140 26 156 27"/>
+  <path d="M146 10 C206 4 236 34 286 26 C314 22 318 2 300 2 C288 2 287 15 298 15"/>
+  <path d="M60 34 C100 38 126 56 168 54 C196 53 210 40 232 44"/>
+  <path d="M286 26 C306 30 322 36 340 32"/>
+  <circle cx="352" cy="31" r="3.5" class="dot"/>`
+
+function scroll(half: string, width: number, height: number, middle = '') {
+  return `
+    <svg class="scroll" viewBox="${-width / 2} 0 ${width} ${height}" width="${width}" height="${height}">
+      <g>${half}</g>
+      <g transform="scale(-1 1)">${half}</g>
+      ${middle}
+    </svg>`
 }
+
+// the bottom scroll holds the hero in an oval crest, with a little point hanging below
+const CREST = `
+  <path d="M-10 60 L0 78 L10 60" />
+  <ellipse cx="0" cy="30" rx="30" ry="34" class="crest-ring"/>
+  <image href="public/icon.svg" x="-18" y="12" width="36" height="36" style="image-rendering: pixelated"/>`
+
+/** The selected item's marker: a leaf pointing at the text, then a diamond. */
+const MARK = `
+  <svg class="mark" viewBox="0 0 34 16" width="34" height="16">
+    <path d="M2 8 L7 3 L12 8 L7 13 Z"/>
+    <path d="M14 8 C20 2 26 2 32 8 C26 14 20 14 14 8 Z"/>
+  </svg>`
+
+function menuItem(label: string, attrs: string, cls = '') {
+  return `<button class="menu-item ${cls}" ${attrs}>${MARK}<span class="label">${label}</span>${MARK}</button>`
+}
+
+// slow dust specks drifting up through the light, placed at random once
+const DUST = Array.from({ length: 36 }, () => {
+  const size = 1 + Math.random() * 3
+  const style = [
+    `left:${(Math.random() * 100).toFixed(1)}%`,
+    `top:${(Math.random() * 100).toFixed(1)}%`,
+    `width:${size.toFixed(1)}px`,
+    `height:${size.toFixed(1)}px`,
+    `animation-duration:${(8 + Math.random() * 10).toFixed(1)}s`,
+    `animation-delay:${(-Math.random() * 18).toFixed(1)}s`,
+  ].join(';')
+  return `<i style="${style}"></i>`
+}).join('')
+
+/** Misty light and dust behind every title menu. */
+const ATMOSPHERE = `<div class="mist"><div class="rays"><i></i><i></i><i></i><i></i></div><div class="dust">${DUST}</div></div>`
+
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']
+
+const sparkle = (filled: boolean) =>
+  `<svg class="sparkle${filled ? ' filled' : ''}" viewBox="0 0 10 10" width="12" height="12"><path d="M5 0 L6.2 3.8 L10 5 L6.2 6.2 L5 10 L3.8 6.2 L0 5 L3.8 3.8 Z"/></svg>`
 
 function titleScreen() {
   const { unlocked } = state
   return `
+    ${ATMOSPHERE}
     <div class="menu-screen">
-      <h1 class="logo">SQUARE<span>UP</span></h1>
-      <div class="ornament"><i></i><div class="crest"></div><i></i></div>
+      <div class="title-logo">
+        ${scroll(SCROLL_TOP, 600, 50)}
+        <h1 class="logo">SQUARE UP</h1>
+        ${scroll(SCROLL_BOTTOM, 720, 82, CREST)}
+      </div>
       <nav class="menu">
         ${menuItem(unlocked > 0 ? 'Continue' : 'Start Game', `data-action="start" data-level="${unlocked}"`)}
         ${menuItem('Level Select', 'data-action="levels"')}
@@ -65,24 +127,26 @@ function titleScreen() {
       </nav>
     </div>
     <div class="corner left">${VERSION}</div>
-    <div class="corner right">${starIcon(true, 12)} ${countStars(state.stars)} / ${TOTAL_STARS}</div>`
+    <div class="corner right">${sparkle(true)} ${countStars(state.stars)} / ${TOTAL_STARS}</div>`
 }
 
 function levelsScreen() {
   const { unlocked, best, stars } = state
   const rows = LEVELS.map((l, i) => {
     const locked = i > unlocked
-    const time = best[i] ? formatTime(best[i].time) : '--'
+    const got = stars[i] ?? []
     const label = `
-      <span class="num">${i + 1}</span>
-      <span class="name">${locked ? 'locked' : l.name}</span>
-      ${starRow(stars[i] ?? [], l.stars.length, 11)}
-      <span class="time">${locked ? '' : time}</span>`
+      <span class="num">${ROMAN[i] ?? i + 1}</span>
+      <span class="name">${locked ? 'Locked' : l.name}</span>
+      <span class="stars">${l.stars.map((_, j) => sparkle(!!got[j])).join('')}</span>
+      <span class="time">${locked ? '' : best[i] ? formatTime(best[i].time) : '-'}</span>`
     return menuItem(label, `data-action="start" data-level="${i}" ${locked ? 'disabled' : ''}`, 'level-row')
   }).join('')
   return `
+    ${ATMOSPHERE}
     <div class="menu-screen">
       <h2 class="menu-title">Level Select</h2>
+      ${scroll(SCROLL_TOP, 420, 50)}
       <nav class="menu">
         ${rows}
         ${menuItem('Back', 'data-action="title"', 'back')}
@@ -91,16 +155,18 @@ function levelsScreen() {
 }
 
 const controlsScreen = () => `
+  ${ATMOSPHERE}
   <div class="menu-screen">
     <h2 class="menu-title">Controls</h2>
+    ${scroll(SCROLL_TOP, 420, 50)}
     <div class="controls keys-only">
-      <div><kbd>A</kbd><kbd>D</kbd> / <kbd>&larr;</kbd><kbd>&rarr;</kbd> move</div>
-      <div><kbd>Space</kbd> / <kbd>W</kbd> jump (hold for higher)</div>
+      <div><kbd>A</kbd><kbd>D</kbd> or <kbd>&larr;</kbd><kbd>&rarr;</kbd> &nbsp;move</div>
+      <div><kbd>Space</kbd> or <kbd>W</kbd> &nbsp;jump, hold for higher</div>
       <div><kbd>R</kbd> restart &nbsp; <kbd>Esc</kbd> pause &nbsp; <kbd>M</kbd> mute</div>
     </div>
     <div class="controls touch-only">
-      <div>Left half of the screen: move (slide your thumb)</div>
-      <div>Right half: jump (hold for higher)</div>
+      <div>Left half of the screen: move, slide your thumb</div>
+      <div>Right half: jump, hold for higher</div>
     </div>
     <nav class="menu">${menuItem('Back', 'data-action="title"', 'back')}</nav>
   </div>`
