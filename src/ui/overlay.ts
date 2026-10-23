@@ -175,17 +175,56 @@ function adjustSetting(key: string | undefined, dir: number) {
 const bindings = (rows: [string, string][]) =>
   `<div class="bindings">${rows.map(([what, how]) => `<div><span class="name">${what}</span><span class="value">${how}</span></div>`).join('')}</div>`
 
-const controllerScreen = () =>
-  menuPage(
-    'Controller',
-    bindings([
-      ['Move', 'Stick / D-pad'],
-      ['Jump', '<kbd>A</kbd> (hold for higher)'],
-      ['Pause', '<kbd>Start</kbd>'],
-      ['Restart', '<kbd>Back</kbd>'],
-      ['Menus', '<kbd>A</kbd> choose, <kbd>B</kbd> back'],
-    ]) + `<nav class="menu">${BACK}</nav>`,
-  )
+// ---------- controller: a drawing of a gamepad with a label pointing at each button we use
+
+/** A label, and the line from it to its button: [x, y] points, starting at the label. */
+type Callout = { text: string; side: 'left' | 'right'; y: number; to: [number, number][] }
+
+const CALLOUTS: Callout[] = [
+  { text: 'Restart', side: 'left', y: 96, to: [[400, 96], [421, 186]] },
+  { text: 'Move', side: 'left', y: 205, to: [[328, 205]] },
+  { text: 'Move', side: 'left', y: 280, to: [[379, 280]] },
+  { text: 'Pause', side: 'right', y: 96, to: [[500, 96], [479, 186]] },
+  { text: 'Back (menus)', side: 'right', y: 205, to: [[582, 205]] },
+  { text: 'Jump / Choose', side: 'right', y: 262, to: [[580, 262], [556, 236]] },
+]
+const LABEL_X = { left: 240, right: 660 }
+
+function callout({ text, side, y, to }: Callout) {
+  const x = LABEL_X[side]
+  const points = [[side === 'left' ? x + 10 : x - 10, y], ...to].map(([px, py]) => `${px},${py}`).join(' ')
+  return `
+    <polyline class="line" points="${points}"/>
+    <circle class="dot" cx="${to.at(-1)![0]}" cy="${to.at(-1)![1]}" r="3"/>
+    <text x="${x}" y="${y + 6}" text-anchor="${side === 'left' ? 'end' : 'start'}">${text}</text>`
+}
+
+/** Face button: used ones in their usual colours, the rest dim. */
+const faceButton = (x: number, y: number, letter: string, cls: string) =>
+  `<circle class="btn ${cls}" cx="${x}" cy="${y}" r="12"/><text class="letter" x="${x}" y="${y + 5}" text-anchor="middle">${letter}</text>`
+
+const PAD_DIAGRAM = `
+  <svg class="pad-diagram" viewBox="40 60 820 330" role="img" aria-label="Controller layout">
+    <!-- shoulders, then the body -->
+    <path class="body" d="M318 150 L330 128 L376 124 L384 140 Z M582 150 L570 128 L524 124 L516 140 Z"/>
+    <path class="body" d="M330 146 C360 126 420 132 450 132 C480 132 540 126 570 146 C612 178 652 300 642 352 C632 392 590 398 564 370 C540 344 520 326 450 326 C380 326 360 344 336 370 C310 398 268 392 258 352 C248 300 288 178 330 146 Z"/>
+    <!-- left stick, d-pad, right stick (unused) -->
+    <circle class="ring" cx="354" cy="205" r="27"/><circle class="stick" cx="354" cy="205" r="15"/>
+    <path class="ring" d="M392 262 h16 v10 h10 v16 h-10 v10 h-16 v-10 h-10 v-16 h10 Z" transform="translate(-1 -0)"/>
+    <circle class="ring dim" cx="496" cy="280" r="24"/><circle class="stick dim" cx="496" cy="280" r="13"/>
+    <!-- back, guide (unused), start -->
+    <circle class="btn small" cx="421" cy="192" r="7"/>
+    <circle class="ring dim" cx="450" cy="200" r="13"/>
+    <circle class="btn small" cx="479" cy="192" r="7"/>
+    <!-- face buttons -->
+    ${faceButton(544, 180, 'Y', 'dim')}
+    ${faceButton(520, 205, 'X', 'dim')}
+    ${faceButton(568, 205, 'B', 'b')}
+    ${faceButton(544, 230, 'A', 'a')}
+    ${CALLOUTS.map(callout).join('')}
+  </svg>`
+
+const controllerScreen = () => menuPage('Controller', `${PAD_DIAGRAM}<nav class="menu">${BACK}</nav>`)
 
 // ---------- keyboard: every action's keys can be changed
 

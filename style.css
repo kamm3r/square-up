@@ -349,6 +349,78 @@ button.menu-item:disabled {
   margin-top: 36px;
 }
 
+/* controller page: a gamepad drawing with a label pointing at each button the game uses */
+.pad-diagram {
+  width: min(780px, 92vw);
+  height: auto;
+  margin-bottom: 8px;
+  overflow: visible;
+  font-size: 20px;
+}
+
+.pad-diagram .body {
+  fill: #1a1c2cf0;
+  stroke: #cbdbfc;
+  stroke-width: 4;
+  stroke-linejoin: round;
+}
+
+.pad-diagram .ring {
+  fill: #222034;
+  stroke: #cbdbfc;
+  stroke-width: 3;
+}
+
+.pad-diagram .stick {
+  fill: #cbdbfc;
+}
+
+.pad-diagram .btn {
+  stroke: #1a1c2c;
+  stroke-width: 3;
+}
+
+.pad-diagram .btn.small {
+  fill: #cbdbfc;
+}
+
+.pad-diagram .btn.a {
+  fill: #6abe30;
+}
+
+.pad-diagram .btn.b {
+  fill: #d95763;
+}
+
+.pad-diagram .dim {
+  fill: #3f3f74;
+  stroke: #5b6ee1;
+  opacity: 0.6;
+}
+
+.pad-diagram .letter {
+  fill: #1a1c2c;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.pad-diagram .line {
+  fill: none;
+  stroke: #fbf236;
+  stroke-width: 2;
+}
+
+.pad-diagram .dot {
+  fill: #fbf236;
+}
+
+.pad-diagram > text:not(.letter) {
+  fill: #f4f4f4;
+  paint-order: stroke;
+  stroke: #1a1c2c;
+  stroke-width: 4px;
+}
+
 /* controller and keyboard pages: what each action is bound to */
 .bindings {
   display: grid;
@@ -769,6 +841,12 @@ body {
 
   .key-row .label {
     grid-template-columns: 11ch 220px;
+  }
+
+  .pad-diagram {
+    width: auto;
+    height: 52vh;
+    margin-bottom: 0;
   }
 
   .menu-hint {
