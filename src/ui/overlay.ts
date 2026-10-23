@@ -8,7 +8,7 @@ import { countStars, state } from '../game/store.js'
 // when they change; values that tick every frame (time, stars) are patched in place.
 // Buttons say what they do with data-action, handled by one click listener at the bottom.
 
-export const formatTime = (t: number) => {
+const formatTime = (t: number) => {
   const m = Math.floor(t / 60)
   const s = (t % 60).toFixed(1).padStart(4, '0')
   return `${m}:${s}`

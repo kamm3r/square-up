@@ -62,8 +62,6 @@ function frame(now: number) {
     level?.dispose()
     level = new LevelScene(LEVELS[state.level], view, textures, state.stars[state.level] ?? [])
     built = key
-    // handy for poking at the game from the browser console
-    ;(window as unknown as { sim: unknown }).sim = level.sim
   }
   level.update(delta, now / 1000, camera)
   renderer.render(level.scene, camera)

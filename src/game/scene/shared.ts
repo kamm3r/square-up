@@ -9,7 +9,7 @@ import {
   type Texture,
 } from 'three'
 
-export const PX = 16 // pixels per tile
+const PX = 16 // pixels per tile
 export const PIXEL = 1 / PX
 const TARGET_HEIGHT = 288 // roughly how many art pixels tall the view is
 
