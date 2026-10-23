@@ -1,4 +1,5 @@
 import { OrthographicCamera, WebGLRenderer } from 'three'
+import { pollGamepad } from './game/input.js'
 import { LevelScene } from './game/level-scene.js'
 import { LEVELS } from './game/levels.js'
 import { pixelView, type View } from './game/scene/shared.js'
@@ -57,6 +58,7 @@ function frame(now: number) {
   const delta = (now - last) / 1000
   last = now
   if (fpsBox) countFrame(now, delta)
+  pollGamepad()
   const key = `${state.level}-${state.attempt}`
   if (key !== built || !level) {
     level?.dispose()

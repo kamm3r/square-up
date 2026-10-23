@@ -1,5 +1,5 @@
 import { playSfx, startMusic } from '../game/audio.js'
-import { setTouchEnabled } from '../game/input.js'
+import { setPlaying } from '../game/input.js'
 import { LEVELS } from '../game/levels.js'
 import * as game from '../game/store.js'
 import { countStars, state } from '../game/store.js'
@@ -149,6 +149,7 @@ const controlsScreen = () => `
       <div><kbd>A</kbd><kbd>D</kbd> / <kbd>&larr;</kbd><kbd>&rarr;</kbd> move</div>
       <div><kbd>Space</kbd> / <kbd>W</kbd> jump (hold for higher)</div>
       <div><kbd>R</kbd> restart &nbsp; <kbd>Esc</kbd> pause &nbsp; <kbd>M</kbd> mute</div>
+      <div>Controller: stick / d-pad move, <kbd>A</kbd> jump, <kbd>Start</kbd> pause, <kbd>Back</kbd> restart</div>
     </div>
     <div class="controls touch-only">
       <div>Left half of the screen: move (slide your thumb)</div>
@@ -272,7 +273,7 @@ export function mountOverlay(root: HTMLElement) {
 
     // CSS shows the touch buttons only while playing, on touch screens
     root.dataset.screen = state.screen
-    setTouchEnabled(state.screen === 'playing')
+    setPlaying(state.screen === 'playing')
     hud.hidden = game.MENU_SCREENS.includes(state.screen)
     if (state.screen !== 'playing') hint.classList.add('hidden')
     field('time').textContent = formatTime(state.time)
