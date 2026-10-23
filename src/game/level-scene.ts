@@ -7,6 +7,7 @@ import { Particles } from './scene/particles.js'
 import { PlayerView } from './scene/player.js'
 import { createFrameState, disposeTree, type FrameState, type View } from './scene/shared.js'
 import { WorldView } from './scene/world.js'
+import { settings } from './settings.js'
 import { LevelSim, PLAYER_SIZE, STEP, type SimEvent } from './sim.js'
 import * as game from './store.js'
 import type { Textures } from './textures.js'
@@ -176,7 +177,7 @@ export class LevelScene {
     this.cam[0] += (tx - this.cam[0]) * k
     this.cam[1] += (ty - this.cam[1]) * k
     frame.shake = Math.max(0, frame.shake - dt * 3)
-    const shake = frame.shake * frame.shake * 0.35
+    const shake = settings.shake ? frame.shake * frame.shake * 0.35 : 0
     const cx = this.cam[0] + (Math.random() - 0.5) * shake
     const cy = this.cam[1] + (Math.random() - 0.5) * shake
     camera.position.x = frame.camX = Math.round(cx * view.unitPx) / view.unitPx

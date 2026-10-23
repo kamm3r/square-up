@@ -1,9 +1,14 @@
+import { onSettingsChange, settings, VOLUME_STEPS } from './settings.js'
+
 export type Sfx = 'jump' | 'hurt' | 'power_up' | 'tap' | 'coin' | 'explosion'
 
 const SFX: Sfx[] = ['jump', 'hurt', 'power_up', 'tap', 'coin', 'explosion']
+const MUSIC_VOLUME = 0.25
 
 let muted = localStorage.getItem('square-up:muted') === '1'
 let music: HTMLAudioElement | null = null
+/** The page is in a hidden tab or the app is in the background. */
+let hidden = false
 
 // Sound effects go through Web Audio: each file is downloaded and decoded once, then every play
 // is instant. (Copying <audio> elements instead makes iPhones fetch the file again every time.)
@@ -19,12 +24,12 @@ for (const name of SFX) {
 
 export function playSfx(name: Sfx, volume = 0.5, rate = 1) {
   const buffer = buffers.get(name)
-  if (muted || !buffer) return
+  if (muted || !buffer || settings.sfx === 0) return
   const source = context.createBufferSource()
   source.buffer = buffer
   source.playbackRate.value = rate
   const gain = context.createGain()
-  gain.gain.value = volume
+  gain.gain.value = volume * (settings.sfx / VOLUME_STEPS)
   source.connect(gain).connect(context.destination)
   source.start()
 }
@@ -35,9 +40,25 @@ export function startMusic() {
   if (!music) {
     music = new Audio('public/sfx/music.mp3')
     music.loop = true
-    music.volume = 0.25
   }
-  if (!muted) void music.play().catch(() => {})
+  updateMusic()
+}
+
+/** Play or pause the music to match the mute switch, the volume setting and the tab. */
+function updateMusic() {
+  if (!music) return
+  music.volume = MUSIC_VOLUME * (settings.music / VOLUME_STEPS)
+  if (muted || hidden || settings.music === 0) music.pause()
+  else void music.play().catch(() => {})
+}
+onSettingsChange(updateMusic)
+
+/** Go quiet while the game is in the background, and pick up again when it's back. */
+export function setHidden(value: boolean) {
+  hidden = value
+  if (hidden) void context.suspend().catch(() => {})
+  else void context.resume().catch(() => {})
+  updateMusic()
 }
 
 export function isMuted() {

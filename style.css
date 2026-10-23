@@ -268,6 +268,48 @@ button.menu-item:disabled {
   color: #cbdbfc;
 }
 
+/* settings rows: the name on the left, its value lined up on the right */
+.setting-row .label {
+  display: grid;
+  grid-template-columns: 13ch 150px;
+  align-items: center;
+  gap: 18px;
+  font-size: 17px;
+  text-align: left;
+}
+
+.setting-row .value {
+  text-align: right;
+}
+
+/* a volume: one pixel block per step */
+.bar {
+  display: inline-flex;
+  gap: 3px;
+  vertical-align: middle;
+}
+
+.bar i {
+  width: 10px;
+  height: 14px;
+  background: #3f3f74;
+  box-shadow: 2px 2px 0 #1a1c2c;
+}
+
+.bar i.on {
+  background: #6abe30;
+}
+
+.menu-item:focus .bar i.on {
+  background: #fbf236;
+}
+
+.menu-hint {
+  margin: 14px 0 0;
+  font-size: 11px;
+  color: #9badb7;
+}
+
 .menu-item.back {
   margin-top: 16px;
   font-size: 16px;
@@ -661,6 +703,20 @@ body {
   .level-row .label {
     font-size: 12px;
     gap: 12px;
+  }
+
+  .setting-row .label {
+    font-size: 13px;
+    grid-template-columns: 13ch 120px;
+  }
+
+  .bar i {
+    width: 8px;
+    height: 11px;
+  }
+
+  .menu-hint {
+    margin-top: 6px;
   }
 
   .menu-item.back {

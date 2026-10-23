@@ -1,8 +1,9 @@
-import { startMusic } from '../game/audio.js'
+import { playSfx, startMusic } from '../game/audio.js'
 import { setTouchEnabled } from '../game/input.js'
 import { LEVELS } from '../game/levels.js'
 import * as game from '../game/store.js'
 import { countStars, state } from '../game/store.js'
+import { changeSetting, onSettingsChange, settings, VOLUME_STEPS } from '../game/settings.js'
 
 // The overlay is plain HTML on top of the canvas. Screens are rebuilt from template strings
 // when they change; values that tick every frame (time, stars) are patched in place.
@@ -70,8 +71,8 @@ function titleScreen() {
       <nav class="menu">
         ${menuItem(unlocked > 0 ? `Continue <small>level ${unlocked + 1}</small>` : 'Start Game', `data-action="start" data-level="${unlocked}"`)}
         ${menuItem('Level Select', 'data-action="levels"')}
+        ${menuItem('Settings', 'data-action="settings"')}
         ${menuItem('Controls', 'data-action="controls"')}
-        ${menuItem(`Sound: ${state.muted ? 'Off' : 'On'}`, 'data-action="mute"')}
       </nav>
     </div>
     <div class="corner left">${VERSION}</div>
@@ -98,6 +99,46 @@ function levelsScreen() {
         ${menuItem('Back', 'data-action="title"', 'back')}
       </nav>
     </div>`
+}
+
+/** A volume as a row of pixel blocks. */
+const volumeBar = (value: number) =>
+  `<span class="bar">${Array.from({ length: VOLUME_STEPS }, (_, i) => `<i${i < value ? ' class="on"' : ''}></i>`).join('')}</span>`
+
+const onOff = (on: boolean) => (on ? 'On' : 'Off')
+
+function settingsScreen() {
+  const row = (name: string, value: string, attrs: string) =>
+    menuItem(`<span class="name">${name}</span><span class="value">${value}</span>`, attrs, 'setting-row')
+  return `
+    <div class="menu-shade full"></div>
+    <div class="menu-screen">
+      <h2 class="menu-title">Settings</h2>
+      <nav class="menu">
+        ${row('Sound', onOff(!state.muted), 'data-action="mute"')}
+        ${row('Music', volumeBar(settings.music), 'data-action="setting" data-key="music"')}
+        ${row('Effects', volumeBar(settings.sfx), 'data-action="setting" data-key="sfx"')}
+        ${row('Screen shake', onOff(settings.shake), 'data-action="setting" data-key="shake"')}
+        ${document.fullscreenEnabled ? row('Fullscreen', onOff(!!document.fullscreenElement), 'data-action="setting" data-key="fullscreen"') : ''}
+        ${menuItem('Back', 'data-action="title"', 'back')}
+      </nav>
+      <p class="menu-hint keys-only">&larr; &rarr; to change</p>
+    </div>`
+}
+
+/** Change a setting by one step: dir -1 or +1 (arrow keys), or 0 to cycle (click, tap, Enter). */
+function adjustSetting(key: string | undefined, dir: number) {
+  if (key === 'music' || key === 'sfx') {
+    const value = settings[key]
+    const next = dir === 0 ? (value + 1) % (VOLUME_STEPS + 1) : Math.min(VOLUME_STEPS, Math.max(0, value + dir))
+    changeSetting(key, next)
+    if (key === 'sfx') playSfx('tap', 0.5) // hear the new volume
+  } else if (key === 'shake') {
+    changeSetting('shake', !settings.shake)
+  } else if (key === 'fullscreen') {
+    if (document.fullscreenElement) void document.exitFullscreen()
+    else void document.documentElement.requestFullscreen().catch(() => {})
+  }
 }
 
 const controlsScreen = () => `
@@ -161,9 +202,13 @@ function victoryScreen() {
     </div>`
 }
 
+/** Screens reached from the title menu; Esc and Back return to it. */
+const SUB_MENUS: game.Screen[] = ['levels', 'settings', 'controls']
+
 const SCREENS: Partial<Record<game.Screen, () => string>> = {
   title: titleScreen,
   levels: levelsScreen,
+  settings: settingsScreen,
   controls: controlsScreen,
   paused: pausedScreen,
   complete: completeScreen,
@@ -239,12 +284,13 @@ export function mountOverlay(root: HTMLElement) {
       field('stars').innerHTML = starRow(state.runStars, LEVELS[state.level].stars.length, 16)
     }
 
-    // the title screen also shows the sound setting, so it's redrawn when that changes
-    const mutedChanged = shownMuted !== state.muted && state.screen === 'title'
+    // the settings screen shows the sound switch, so it's redrawn when that changes
+    const mutedChanged = shownMuted !== state.muted
     shownMuted = state.muted
-    if (state.screen !== shownScreen || mutedChanged) {
-      // coming back from a sub-menu (or toggling sound), select the item that was used
-      const from = shownScreen === state.screen ? 'mute' : shownScreen === 'levels' || shownScreen === 'controls' ? shownScreen : ''
+    if (mutedChanged && state.screen === shownScreen) redrawSettings()
+    else if (state.screen !== shownScreen) {
+      // coming back from a sub-menu, select the item that opened it
+      const from = shownScreen && SUB_MENUS.includes(shownScreen) ? shownScreen : ''
       shownScreen = state.screen
       screenEl.innerHTML = SCREENS[state.screen]?.() ?? ''
       const back = from ? screenEl.querySelector<HTMLButtonElement>(`[data-action="${from}"]`) : null
@@ -262,7 +308,9 @@ export function mountOverlay(root: HTMLElement) {
       case 'pause': return game.togglePause()
       case 'title': return game.toTitle()
       case 'levels':
+      case 'settings':
       case 'controls': return game.showMenu(button.dataset.action)
+      case 'setting': return adjustSetting(button.dataset.key, 0)
       case 'mute': return game.toggleMute()
     }
   })
@@ -286,17 +334,24 @@ export function mountOverlay(root: HTMLElement) {
 
   window.addEventListener('keydown', (e) => {
     const { screen } = state
-    // up and down move through menu items
+    const focused = document.activeElement as HTMLElement | null
+    const change = { ArrowLeft: -1, KeyA: -1, ArrowRight: 1, KeyD: 1 }[e.code]
+    if (change && focused?.dataset.action === 'setting') {
+      adjustSetting(focused.dataset.key, change)
+      e.preventDefault()
+      return
+    }
+    // up and down move through the items of a menu or panel
     const step = { ArrowUp: -1, KeyW: -1, ArrowDown: 1, KeyS: 1 }[e.code]
-    if (step && screenEl.querySelector('.menu')) {
-      const items = [...screenEl.querySelectorAll<HTMLButtonElement>('.menu-item:not(:disabled)')]
+    if (step && screen !== 'playing' && screenEl.querySelector('.menu, .panel')) {
+      const items = [...screenEl.querySelectorAll<HTMLButtonElement>('.menu-item:not(:disabled), .panel button:not(:disabled)')]
       const at = items.indexOf(document.activeElement as HTMLButtonElement)
       items[(at + step + items.length) % items.length]?.focus()
       e.preventDefault()
       return
     }
     if (e.repeat) return
-    if (e.code === 'Escape' && (screen === 'levels' || screen === 'controls')) return game.toTitle()
+    if (e.code === 'Escape' && SUB_MENUS.includes(screen)) return game.toTitle()
     if (e.code === 'Escape' || e.code === 'KeyP') game.togglePause()
     else if (e.code === 'KeyM') game.toggleMute()
     else if (e.code === 'KeyR' && (screen === 'playing' || screen === 'paused')) game.restart()
@@ -307,6 +362,19 @@ export function mountOverlay(root: HTMLElement) {
       else if (screen === 'victory') game.toTitle()
     }
   })
+
+  // redraw the settings screen when a setting (or fullscreen) changes, keeping the same item selected
+  const redrawSettings = () => {
+    if (state.screen !== 'settings') return
+    const key = (document.activeElement as HTMLElement | null)?.dataset.key
+    // swap just the menu items, so the screen doesn't replay its fade-in on every change
+    const fresh = document.createElement('div')
+    fresh.innerHTML = settingsScreen()
+    screenEl.querySelector('.menu')?.replaceWith(fresh.querySelector('.menu')!)
+    screenEl.querySelector<HTMLButtonElement>(key ? `[data-key="${key}"]` : '[data-action="mute"]')?.focus()
+  }
+  onSettingsChange(redrawSettings)
+  document.addEventListener('fullscreenchange', redrawSettings)
 
   game.subscribe(render)
   render()

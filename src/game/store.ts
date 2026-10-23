@@ -1,10 +1,10 @@
 import { LEVELS } from './levels.js'
-import { isMuted, playSfx, setMuted, startMusic } from './audio.js'
+import { isMuted, playSfx, setHidden, setMuted, startMusic } from './audio.js'
 
-export type Screen = 'title' | 'levels' | 'controls' | 'playing' | 'paused' | 'complete' | 'victory'
+export type Screen = 'title' | 'levels' | 'settings' | 'controls' | 'playing' | 'paused' | 'complete' | 'victory'
 
 /** The title screen and its sub-menus: no HUD, and the level plays as a backdrop. */
-export const MENU_SCREENS: Screen[] = ['title', 'levels', 'controls']
+export const MENU_SCREENS: Screen[] = ['title', 'levels', 'settings', 'controls']
 
 export type Result = { time: number; deaths: number; stars: number }
 
@@ -107,8 +107,14 @@ export function togglePause() {
 
 export const toTitle = () => set({ screen: 'title' })
 
+// switching tabs or apps (or locking the phone) pauses the game and silences it until you're back
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && state.screen === 'playing') togglePause()
+  setHidden(document.hidden)
+})
+
 /** The title screen's sub-menus. */
-export function showMenu(screen: 'levels' | 'controls') {
+export function showMenu(screen: 'levels' | 'settings' | 'controls') {
   playSfx('tap', 0.3)
   set({ screen })
 }
