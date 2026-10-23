@@ -282,6 +282,35 @@ button.menu-item:disabled {
   text-align: right;
 }
 
+/* keyboard page: each action's keys, changed by selecting the row and pressing a key */
+.key-row .label {
+  grid-template-columns: 11ch 260px;
+}
+
+.key-row kbd {
+  margin: 0 0 0 4px;
+  text-shadow: none;
+}
+
+.key-row kbd.fixed {
+  opacity: 0.5;
+}
+
+.key-row .waiting {
+  color: #fbf236;
+  animation: blink 0.8s steps(1) infinite;
+}
+
+.key-row .unbound {
+  color: #d95763;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
 /* a volume: one pixel block per step */
 .bar {
   display: inline-flex;
@@ -736,6 +765,10 @@ body {
   .bar i {
     width: 8px;
     height: 11px;
+  }
+
+  .key-row .label {
+    grid-template-columns: 11ch 220px;
   }
 
   .menu-hint {

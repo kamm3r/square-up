@@ -11,8 +11,8 @@ compiler is a binary in `lib/`, and a Makefile builds it.
 
 ## Playing
 
-- **Keyboard:** A/D or arrows to move, Space/W to jump (hold for higher), Esc to pause, R to restart,
-  M to mute.
+- **Keyboard:** A/D or arrows to move, Space/W/up to jump (hold for higher), Esc or P to pause, R to
+  restart, M to mute. Every key can be changed in Settings > Keyboard (Esc always pauses).
 - **Controller:** stick or d-pad to move, A to jump, Start to pause, Back to restart. Menus work
   with it too.
 - **Touch:** left half of the screen moves (slide your thumb), right half jumps.

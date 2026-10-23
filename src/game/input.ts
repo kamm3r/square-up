@@ -1,16 +1,17 @@
+import { isBound, settings, type Action } from './settings.js'
+import { restart } from './store.js'
+
 export type InputState = { left: boolean; right: boolean; jump: boolean }
 
 const keys = new Set<string>()
 
-const LEFT = ['ArrowLeft', 'KeyA']
-const RIGHT = ['ArrowRight', 'KeyD']
-const JUMP = ['Space', 'ArrowUp', 'KeyW', 'KeyZ']
-const GAME_KEYS = new Set([...LEFT, ...RIGHT, ...JUMP])
+/** Bound to moving or jumping, so the browser shouldn't also scroll the page with it. */
+const isMoveKey = (code: string) => isBound('left', code) || isBound('right', code) || isBound('jump', code)
 
 window.addEventListener('keydown', (e) => {
   keys.add(e.code)
   // stop page scrolling, but let focused menu buttons still react to Space
-  if (GAME_KEYS.has(e.code) && !(e.target instanceof HTMLButtonElement)) e.preventDefault()
+  if (isMoveKey(e.code) && !(e.target instanceof HTMLButtonElement)) e.preventDefault()
 })
 window.addEventListener('keyup', (e) => keys.delete(e.code))
 window.addEventListener('blur', () => {
@@ -89,7 +90,7 @@ window.addEventListener('pointercancel', endTouch)
 // ---------- gamepad (standard mapping: Xbox, PlayStation, Switch Pro and most others)
 //
 // In a level the stick or d-pad moves and A jumps. Everywhere else the pad presses the same keys
-// as the keyboard (arrows, Esc, R), so menus and pause need no gamepad code of their own.
+// as the keyboard (arrows, Esc), so menus and pause need no gamepad code of their own.
 
 const STICK_DEAD_ZONE = 0.4
 const BUTTON = { a: 0, b: 1, back: 8, start: 9, up: 12, down: 13, left: 14, right: 15 }
@@ -126,7 +127,7 @@ export function pollGamepad() {
 
   if (pressed(BUTTON.start)) tapKey('Escape')
   if (playing) {
-    if (pressed(BUTTON.back)) tapKey('KeyR')
+    if (pressed(BUTTON.back)) restart()
   } else {
     if (pressed(BUTTON.up) || (stick.y < 0 && stickWas.y >= 0)) tapKey('ArrowUp')
     if (pressed(BUTTON.down) || (stick.y > 0 && stickWas.y <= 0)) tapKey('ArrowDown')
@@ -139,13 +140,13 @@ export function pollGamepad() {
   stickWas = stick
 }
 
-const any = (codes: string[]) => codes.some((c) => keys.has(c))
+const held = (action: Action) => settings.keys[action].some((c) => keys.has(c))
 
 export const input: InputState = { left: false, right: false, jump: false }
 
 export function readInput(): InputState {
-  input.left = any(LEFT) || touchState.left || padState.left
-  input.right = any(RIGHT) || touchState.right || padState.right
-  input.jump = any(JUMP) || touchState.jump || padState.jump
+  input.left = held('left') || touchState.left || padState.left
+  input.right = held('right') || touchState.right || padState.right
+  input.jump = held('jump') || touchState.jump || padState.jump
   return input
 }

@@ -3,7 +3,7 @@ import { setPlaying } from '../game/input.js'
 import { LEVELS } from '../game/levels.js'
 import * as game from '../game/store.js'
 import { countStars, state } from '../game/store.js'
-import { changeSetting, onSettingsChange, settings, VOLUME_STEPS } from '../game/settings.js'
+import { bindKey, changeSetting, isBound, onSettingsChange, resetKeys, settings, VOLUME_STEPS, type Action } from '../game/settings.js'
 
 // The overlay is plain HTML on top of the canvas. Screens are rebuilt from template strings
 // when they change; values that tick every frame (time, stars) are patched in place.
@@ -128,8 +128,8 @@ const volumeBar = (value: number) =>
 const onOff = (on: boolean) => (on ? 'On' : 'Off')
 
 /** A setting you can change: its name on the left, its value on the right. */
-const settingRow = (name: string, value: string, attrs: string) =>
-  menuItem(`<span class="name">${name}</span><span class="value">${value}</span>`, attrs, 'setting-row')
+const settingRow = (name: string, value: string, attrs: string, cls = '') =>
+  menuItem(`<span class="name">${name}</span><span class="value">${value}</span>`, attrs, `setting-row ${cls}`)
 
 const setting = (name: string, key: string, value: string) => settingRow(name, value, `data-action="setting" data-key="${key}"`)
 
@@ -147,6 +147,7 @@ const SETTING_PAGES: Partial<Record<game.Screen, () => string>> = {
         setting('Music', 'music', volumeBar(settings.music)) +
         setting('Effects', 'sfx', volumeBar(settings.sfx)),
     ),
+  'settings-keyboard': () => keyboardScreen(),
   'settings-video': () =>
     settingsPage(
       'Video',
@@ -186,22 +187,72 @@ const controllerScreen = () =>
     ]) + `<nav class="menu">${BACK}</nav>`,
   )
 
+// ---------- keyboard: every action's keys can be changed
+
+/** Short names for keys, from `KeyboardEvent.code`. */
+const KEY_NAMES: Record<string, string> = {
+  ArrowLeft: '&larr;',
+  ArrowRight: '&rarr;',
+  ArrowUp: '&uarr;',
+  ArrowDown: '&darr;',
+  ShiftLeft: 'L-Shift',
+  ShiftRight: 'R-Shift',
+  ControlLeft: 'L-Ctrl',
+  ControlRight: 'R-Ctrl',
+  AltLeft: 'L-Alt',
+  AltRight: 'R-Alt',
+  MetaLeft: 'L-Meta',
+  MetaRight: 'R-Meta',
+  Backspace: 'Bksp',
+  CapsLock: 'Caps',
+  Backquote: '`',
+  Minus: '-',
+  Equal: '=',
+  BracketLeft: '[',
+  BracketRight: ']',
+  Backslash: '\\',
+  Semicolon: ';',
+  Quote: "'",
+  Comma: ',',
+  Period: '.',
+  Slash: '/',
+}
+const keyName = (code: string) => KEY_NAMES[code] ?? code.replace(/^(Key|Digit)/, '').replace(/^Numpad/, 'Num ')
+
+const ACTIONS: [Action, string][] = [
+  ['left', 'Move left'],
+  ['right', 'Move right'],
+  ['jump', 'Jump'],
+  ['pause', 'Pause'],
+  ['restart', 'Restart'],
+  ['mute', 'Mute'],
+]
+
+/** The action waiting for its new key (after Enter or a click on its row), if any. */
+let capturing: Action | null = null
+
+function keyRow(action: Action, label: string) {
+  const keys = settings.keys[action].map((code) => `<kbd>${keyName(code)}</kbd>`)
+  // Esc pauses whatever else is bound, so it's shown but can't be changed
+  if (action === 'pause') keys.unshift('<kbd class="fixed">Esc</kbd>')
+  const value = capturing === action ? '<span class="waiting">press a key...</span>' : keys.join(' ') || '<span class="unbound">none</span>'
+  return settingRow(label, value, `data-action="bind" data-bind="${action}" data-key="bind-${action}"`, 'key-row keys-only')
+}
+
 const keyboardScreen = () =>
   menuPage(
     '<span class="keys-only">Keyboard</span><span class="touch-only">Touch</span>',
-    `<div class="keys-only">${bindings([
-      ['Move', '<kbd>A</kbd><kbd>D</kbd> / <kbd>&larr;</kbd><kbd>&rarr;</kbd>'],
-      ['Jump', '<kbd>Space</kbd> / <kbd>W</kbd> (hold for higher)'],
-      ['Pause', '<kbd>Esc</kbd> / <kbd>P</kbd>'],
-      ['Restart', '<kbd>R</kbd>'],
-      ['Mute', '<kbd>M</kbd>'],
-    ])}</div>
-    <div class="touch-only">${bindings([
+    `<div class="touch-only">${bindings([
       ['Move', 'Left half: slide your thumb'],
       ['Jump', 'Right half (hold for higher)'],
       ['Pause', 'The || button'],
     ])}</div>
-    <nav class="menu">${BACK}</nav>`,
+    <nav class="menu">
+      ${ACTIONS.map(([action, label]) => keyRow(action, label)).join('')}
+      ${menuItem('Reset to defaults', 'data-action="reset-keys" data-key="reset-keys"', 'keys-only')}
+      ${BACK}
+    </nav>
+    <p class="menu-hint keys-only">${capturing ? 'Esc to cancel' : 'Enter to change a key'}</p>`,
   )
 
 const pausedScreen = () => `
@@ -255,7 +306,6 @@ const SCREENS: Partial<Record<game.Screen, () => string>> = {
   settings: settingsScreen,
   ...SETTING_PAGES,
   'settings-controller': controllerScreen,
-  'settings-keyboard': keyboardScreen,
   paused: pausedScreen,
   complete: completeScreen,
   victory: victoryScreen,
@@ -342,6 +392,7 @@ export function mountOverlay(root: HTMLElement) {
       // coming back from a menu, select the item that opened it; otherwise the first item
       const from = shownScreen
       shownScreen = state.screen
+      capturing = null // leaving the keyboard page cancels a key change
       screenEl.innerHTML = SCREENS[state.screen]?.() ?? ''
       const opener = from ? selectable(screenEl, `[data-menu="${from}"]`)[0] : undefined
       ;(opener ?? screenEl.querySelector<HTMLButtonElement>('button.primary') ?? selectable(screenEl)[0])?.focus()
@@ -360,6 +411,10 @@ export function mountOverlay(root: HTMLElement) {
       case 'menu': return game.showMenu(button.dataset.menu as game.MenuScreen)
       case 'back': return game.backMenu()
       case 'setting': return adjustSetting(button.dataset.key, 0)
+      case 'bind':
+        capturing = button.dataset.bind as Action
+        return redrawSettings()
+      case 'reset-keys': return resetKeys()
       case 'mute': return game.toggleMute()
     }
   })
@@ -401,9 +456,9 @@ export function mountOverlay(root: HTMLElement) {
     }
     if (e.repeat) return
     if (e.code === 'Escape' && game.MENU_SCREENS.includes(screen)) return game.backMenu()
-    if (e.code === 'Escape' || e.code === 'KeyP') game.togglePause()
-    else if (e.code === 'KeyM') game.toggleMute()
-    else if (e.code === 'KeyR' && (screen === 'playing' || screen === 'paused')) game.restart()
+    if (e.code === 'Escape' || isBound('pause', e.code)) game.togglePause()
+    else if (isBound('mute', e.code)) game.toggleMute()
+    else if (isBound('restart', e.code) && (screen === 'playing' || screen === 'paused')) game.restart()
     // focused buttons handle Enter themselves
     else if (e.code === 'Enter' && !(e.target instanceof HTMLButtonElement)) {
       if (screen === 'title') game.startLevel(state.unlocked)
@@ -421,8 +476,28 @@ export function mountOverlay(root: HTMLElement) {
     const fresh = document.createElement('div')
     fresh.innerHTML = page()
     screenEl.querySelector('.menu')?.replaceWith(fresh.querySelector('.menu')!)
+    const hint = fresh.querySelector('.menu-hint')
+    if (hint) screenEl.querySelector('.menu-hint')?.replaceWith(hint)
     screenEl.querySelector<HTMLButtonElement>(key ? `[data-key="${key}"]` : '[data-action="mute"]')?.focus()
   }
+
+  // While a key is being changed, the next key press is the new key, and nothing else sees it
+  // (it runs in the capture phase, before the game's and the menus' own key handling).
+  window.addEventListener(
+    'keydown',
+    (e) => {
+      if (!capturing) return
+      e.preventDefault()
+      e.stopImmediatePropagation()
+      if (e.repeat) return // still holding the Enter that started it
+      const action = capturing
+      capturing = null
+      playSfx('tap', 0.4)
+      if (e.code === 'Escape' || e.code === 'Tab' || !e.code) redrawSettings() // cancel
+      else bindKey(action, e.code) // redraws through onSettingsChange
+    },
+    { capture: true },
+  )
   onSettingsChange(redrawSettings)
   document.addEventListener('fullscreenchange', redrawSettings)
 
