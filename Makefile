@@ -3,7 +3,7 @@
 #   make deps           download three.js, p2-es and TypeScript into lib/ (once)
 #   make                compile src/ and tools/ into build/
 #   make watch          recompile on every save
-#   make serve          compile, then serve the game on http://localhost:5317
+#   make serve          compile, then serve the game on http://localhost:5317 (needs node)
 #   make share          same, and also share it with your phone over Tailscale (see README)
 #   make check-levels   run the bot that proves every level can be beaten (needs node)
 #   make dist           build downloadable programs for Windows, macOS and Linux (needs go)
@@ -32,7 +32,7 @@ watch: | $(TSC)
 
 serve: all
 	@echo "Square Up running on http://localhost:$(PORT)"
-	python3 -m http.server $(PORT) --bind 127.0.0.1
+	node build/tools/serve.js $(PORT)
 
 # Serves the game on this computer's Tailscale address, so only your own Tailscale devices can
 # open it, at two links:
@@ -42,9 +42,9 @@ share: all
 	@ip=$$(tailscale ip -4) && \
 	tailscale serve --bg http://$$ip:$(PORT) > /dev/null && \
 	echo "On your phone (Tailscale on) open:" && \
-	echo "  https://$$(tailscale status --json | python3 -c 'import json,sys; print(json.load(sys.stdin)["Self"]["DNSName"].rstrip("."))')" && \
+	echo "  https://$$(tailscale status --json | grep -m1 '"DNSName"' | sed -E 's/.*"([^"]+)\.",?$$/\1/')" && \
 	echo "  http://$$ip:$(PORT)   (if the first one says the address can't be found)" && \
-	python3 -m http.server $(PORT) --bind $$ip
+	node build/tools/serve.js $(PORT) $$ip
 
 unshare:
 	tailscale serve reset

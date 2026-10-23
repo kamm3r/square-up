@@ -29,8 +29,10 @@ make deps     # once: downloads three.js, p2-es and the TypeScript compiler into
 make serve    # compiles, then serves on http://localhost:5317
 ```
 
-You need `curl` and `tar` for `make deps`, and `python3` for `make serve` (any static file server
-works; ES modules just can't load from `file://`). `make watch` recompiles on every save.
+You need `curl` and `tar` for `make deps`, and `node` for `make serve`. The dev server is
+`tools/serve.ts`, compiled with the rest; ES modules can't load from `file://`, so the game always
+needs a server, and this one makes the browser pick up every rebuild on a plain refresh.
+`make watch` recompiles on every save.
 
 `make dist` (needs `go`) builds the downloadable programs into `dist/`. Each one is
 `launcher/main.go` with the game files packed inside: it serves them on `127.0.0.1:47317` and
