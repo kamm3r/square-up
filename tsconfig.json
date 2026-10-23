@@ -1,21 +1,26 @@
 {
+  // Compiled by the vendored compiler: lib/typescript/tsc -p .   (or just `make`)
+  // Every .ts file becomes a .js file in build/, with the same folder layout. No bundler:
+  // the browser loads the ES modules directly, and index.html maps "three" to lib/three.
   "compilerOptions": {
-    "target": "ESNext",
-    "useDefineForClassFields": true,
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "allowJs": false,
-    "skipLibCheck": true,
-    "esModuleInterop": false,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "moduleResolution": "Node",
-    "resolveJsonModule": true,
+    "moduleResolution": "bundler",
+    "rootDir": ".",
+    "outDir": "build",
+    "sourceMap": true,
+    // the "include directory": where `import ... from 'three'` finds its declarations
+    "paths": {
+      "three": ["./lib/three/types/index.d.ts"],
+      "p2-es": ["./lib/p2-es/p2-es.d.ts"]
+    },
+    "types": [],
+    "strict": true,
+    "skipLibCheck": true,
     "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx"
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src", "tools"]
 }

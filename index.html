@@ -1,13 +1,48 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>Square Up</title>
+    <link rel="icon" href="public/icon.svg" />
+    <link rel="stylesheet" href="style.css" />
+    <!-- Tells the browser where bare imports like `from 'three'` live: the vendored copies in lib/ -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./lib/three/three.module.js",
+          "p2-es": "./lib/p2-es/p2-es.js"
+        }
+      }
+    </script>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <canvas id="game"></canvas>
+    <div id="overlay" class="overlay"></div>
+    <!--
+      Phones have no developer console, so problems are shown on screen instead: script errors,
+      and a note if the game never starts (import maps need Safari / iOS 16.4 or newer).
+    -->
+    <div id="error" hidden></div>
+    <script>
+      function showError(text) {
+        var el = document.getElementById('error')
+        el.hidden = false
+        el.textContent += text + '\n'
+      }
+      window.addEventListener('error', function (e) {
+        showError('Error: ' + e.message + (e.filename ? ' (' + e.filename.split('/').pop() + ':' + e.lineno + ')' : ''))
+      })
+      window.addEventListener('unhandledrejection', function (e) {
+        showError('Error: ' + (e.reason && e.reason.message ? e.reason.message : e.reason))
+      })
+      if (!(HTMLScriptElement.supports && HTMLScriptElement.supports('importmap')))
+        showError('This browser is too old to run the game (it needs Safari / iOS 16.4 or newer).')
+      setTimeout(function () {
+        if (!window.gameStarted) showError('The game did not start. ' + navigator.userAgent)
+      }, 6000)
+    </script>
+    <!-- compiled from src/main.ts by `make` -->
+    <script type="module" src="build/src/main.js"></script>
   </body>
 </html>

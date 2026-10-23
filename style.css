@@ -1,0 +1,588 @@
+@font-face {
+  font-family: 'Pixel';
+  src: url('public/fonts/PixelOperator8.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Pixel';
+  font-weight: bold;
+  src: url('public/fonts/PixelOperator8-Bold.ttf') format('truetype');
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #1a1c2c;
+  font-family: 'Pixel', monospace;
+  color: #f4f4f4;
+  -webkit-font-smoothing: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#game {
+  position: fixed;
+  inset: 0;
+  display: block;
+  image-rendering: pixelated;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+}
+
+.screen {
+  display: contents;
+}
+
+.hud[hidden] {
+  display: none;
+}
+
+.overlay button,
+.overlay .panel {
+  pointer-events: auto;
+}
+
+/* ---------- HUD */
+
+.hud {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 14px;
+}
+
+.hud-box {
+  background: #1a1c2ccc;
+  border: 2px solid #1a1c2c;
+  box-shadow: inset 0 0 0 2px #3f3f74;
+  padding: 8px 12px;
+}
+
+.skull {
+  color: #d95763;
+  margin-left: 12px;
+  margin-right: 4px;
+}
+
+.hud-buttons {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.hint {
+  position: absolute;
+  top: 72px;
+  font-size: 16px;
+  background: #1a1c2ccc;
+  padding: 10px 16px;
+  border: 2px solid #3f3f74;
+  transition: opacity 0.6s, transform 0.6s;
+}
+
+.hint.hidden {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+/* ---------- panels */
+
+.panel {
+  min-width: 340px;
+  max-width: 92vw;
+  padding: 28px 32px;
+  background: #1a1c2ce8;
+  border: 4px solid #1a1c2c;
+  box-shadow:
+    inset 0 0 0 4px #3f3f74,
+    0 8px 0 #0008;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  text-align: center;
+  animation: pop 0.18s ease-out;
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.94);
+    opacity: 0;
+  }
+}
+
+.panel h2 {
+  margin: 0 0 8px;
+  font-size: 26px;
+  color: #fbf236;
+  text-shadow: 3px 3px 0 #ac3232;
+}
+
+.panel p {
+  margin: 4px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #cbdbfc;
+}
+
+.title h1 {
+  margin: 0;
+  font-size: 54px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: #41a6f6;
+  text-shadow:
+    4px 4px 0 #1a1c2c,
+    6px 6px 0 #3b5dc9;
+}
+
+.title h1 span {
+  color: #ef7d57;
+  margin-left: 18px;
+  text-shadow:
+    4px 4px 0 #1a1c2c,
+    6px 6px 0 #b13e53;
+}
+
+.sub {
+  margin-bottom: 14px !important;
+}
+
+button {
+  font: inherit;
+  font-size: 14px;
+  color: #f4f4f4;
+  background: #3f3f74;
+  border: 2px solid #1a1c2c;
+  box-shadow:
+    inset -2px -2px 0 #222034,
+    inset 2px 2px 0 #5b6ee1;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled),
+button:focus-visible {
+  background: #5b6ee1;
+  outline: none;
+}
+
+button:active:not(:disabled) {
+  transform: translateY(2px);
+}
+
+button.primary {
+  background: #df7126;
+  box-shadow:
+    inset -2px -2px 0 #8f563b,
+    inset 2px 2px 0 #fbf236;
+  font-size: 16px;
+  padding: 12px 16px;
+}
+
+button.primary:hover,
+button.primary:focus-visible {
+  background: #ef7d57;
+}
+
+button.icon {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+button.link {
+  background: none;
+  box-shadow: none;
+  border: none;
+  color: #9badb7;
+  font-size: 12px;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.levels {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.levels button {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 4px;
+}
+
+.levels strong {
+  font-size: 20px;
+}
+
+.levels small {
+  font-size: 9px;
+  color: #cbdbfc;
+}
+
+.controls {
+  margin-top: 14px;
+  font-size: 11px;
+  line-height: 2.2;
+  color: #9badb7;
+}
+
+kbd {
+  font: inherit;
+  display: inline-block;
+  padding: 0 6px;
+  margin: 0 2px;
+  background: #222034;
+  border: 2px solid #3f3f74;
+  color: #f4f4f4;
+}
+
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  font-size: 22px;
+  margin: 6px 0 4px;
+}
+
+.stats small {
+  display: block;
+  font-size: 10px;
+  color: #9badb7;
+  margin-bottom: 4px;
+}
+
+.record {
+  color: #fbf236 !important;
+}
+
+/* ---------- stars */
+
+.star-row {
+  display: inline-flex;
+  gap: 3px;
+  vertical-align: middle;
+}
+
+.star-icon {
+  fill: #3f3f74;
+}
+
+.star-icon.filled {
+  fill: #fbf236;
+  filter: drop-shadow(1px 1px 0 #df7126);
+}
+
+.star-icon.new {
+  animation: star-pop 0.5s 0.3s both cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+@keyframes star-pop {
+  from {
+    transform: scale(0) rotate(-40deg);
+  }
+}
+
+.big-stars {
+  margin: 2px 0 6px;
+}
+
+.big-stars .star-row {
+  gap: 10px;
+}
+
+.total-stars {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #fbf236 !important;
+}
+
+.dim {
+  color: #9badb7 !important;
+}
+
+.levels button {
+  align-items: center;
+}
+
+/* ---------- screen effects */
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, #1a1c2c66 100%);
+}
+
+.fade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: #1a1c2c;
+  animation: fade-out 0.45s ease-out forwards;
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* ---------- touch screens */
+
+html,
+body {
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.touch-only,
+.touch-controls,
+.rotate {
+  display: none;
+}
+
+.touch-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
+}
+
+.touch-move {
+  display: flex;
+  gap: 12px;
+}
+
+/*
+  Only a picture of the controls: the whole left half of the screen is the move pad and the right
+  half is jump (see src/game/input.ts). The pressed side lights up.
+*/
+.touch-move {
+  gap: 0;
+  border: 3px solid #f4f4f466;
+  border-radius: 48px;
+  background: #1a1c2c55;
+  overflow: hidden;
+}
+
+.touch-move .touch-button {
+  width: 96px;
+  height: 84px;
+  border: none;
+  border-radius: 0;
+  background: none;
+}
+
+.touch-move .touch-button + .touch-button {
+  border-left: 2px solid #f4f4f433;
+}
+
+.touch-button.active {
+  color: #fbf236;
+  background: #f4f4f444 !important;
+}
+
+.touch-button.jump.active {
+  border-color: #fbf236aa;
+}
+
+.touch-button {
+  pointer-events: none;
+  width: 84px;
+  height: 84px;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  color: #f4f4f4cc;
+  background: #1a1c2c55;
+  border: 3px solid #f4f4f466;
+  border-radius: 50%;
+}
+
+.touch-button.jump {
+  width: 100px;
+  height: 100px;
+  font-size: 14px;
+}
+
+/* only a hint: with rotation lock on the phone can't turn, so the game must still work upright */
+.rotate {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 140px;
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.6;
+  background: #1a1c2ccc;
+  border: 2px solid #3f3f74;
+}
+
+@media (pointer: coarse) {
+  .keys-only {
+    display: none;
+  }
+
+  .touch-only {
+    display: block;
+  }
+
+  .overlay[data-screen='playing'] .touch-controls {
+    display: flex;
+  }
+}
+
+@media (pointer: coarse) and (orientation: portrait) {
+  .rotate {
+    display: block;
+  }
+}
+
+/* phones held sideways are short: shrink the HUD and menus to fit */
+@media (max-height: 500px) {
+  .hud {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    gap: 6px;
+    font-size: 10px;
+  }
+
+  .hud-box {
+    padding: 6px 8px;
+  }
+
+  button.icon {
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+
+  .hint {
+    top: 48px;
+    font-size: 11px;
+  }
+
+  .panel {
+    max-height: calc(100dvh - 16px);
+    overflow-y: auto;
+    padding: 14px 20px;
+    gap: 6px;
+  }
+
+  .title h1 {
+    font-size: 34px;
+  }
+
+  .panel h2 {
+    font-size: 20px;
+  }
+
+  .sub {
+    margin-bottom: 4px !important;
+  }
+
+  .controls {
+    margin-top: 4px;
+  }
+
+  .levels button {
+    padding: 6px 4px;
+    gap: 3px;
+  }
+
+  button,
+  button.primary {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+/* ---------- problems, shown on screen (see index.html) */
+
+#error {
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  top: 8px;
+  z-index: 10;
+  padding: 10px 12px;
+  white-space: pre-wrap;
+  font: 12px/1.5 monospace;
+  -webkit-user-select: text;
+  user-select: text;
+  color: #fff;
+  background: #ac3232;
+  border: 2px solid #1a1c2c;
+}
+
+/* phones held upright are narrow: let the HUD wrap instead of pushing buttons off screen */
+@media (max-width: 600px) {
+  .hud {
+    flex-wrap: wrap;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    gap: 6px;
+    font-size: 10px;
+  }
+
+  .hud-box {
+    padding: 6px 8px;
+  }
+
+  button.icon {
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+
+  .hint {
+    top: auto;
+    bottom: 200px;
+    margin: 0 8px;
+    font-size: 11px;
+  }
+}
+
+/* frames per second, shown when the address ends in ?fps */
+#fps {
+  position: fixed;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  z-index: 10;
+  padding: 2px 6px;
+  font: 12px monospace;
+  color: #99e550;
+  background: #000a;
+  pointer-events: none;
+}
