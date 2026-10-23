@@ -1,8 +1,10 @@
 import { OrthographicCamera, Scene } from 'three'
 import { playSfx } from './audio.js'
+import { GhostRecorder, GhostRun } from './ghost.js'
 import { readInput } from './input.js'
 import type { Level } from './levels.js'
 import { Background } from './scene/background.js'
+import { GhostView } from './scene/ghost.js'
 import { Particles } from './scene/particles.js'
 import { PlayerView } from './scene/player.js'
 import { createFrameState, disposeTree, type FrameState, type View } from './scene/shared.js'
@@ -23,6 +25,11 @@ export class LevelScene {
   private readonly world: WorldView
   private readonly player: PlayerView
   private readonly fx = new Particles()
+  /** This run's inputs, saved as the new ghost if it beats the best time. */
+  private readonly recorder = new GhostRecorder()
+  /** The best run so far, replayed alongside this one. */
+  private readonly ghost: GhostRun | null
+  private readonly ghostView: GhostView | null
 
   private acc = 0
   private time = 0
@@ -45,7 +52,10 @@ export class LevelScene {
     this.background = new Background(level, view, this.frame)
     this.world = new WorldView(level, this.sim, this.frame, textures, savedStars)
     this.player = new PlayerView(this.sim, this.frame, textures)
+    this.ghost = GhostRun.load(level)
+    this.ghostView = this.ghost && new GhostView(this.ghost, this.frame, textures)
     this.scene.add(this.background.root, this.background.ambient.mesh, this.world.root, this.player.root, this.fx.mesh)
+    if (this.ghostView) this.scene.add(this.ghostView.root)
   }
 
   private clampCam(x: number, y: number): [number, number] {
@@ -132,6 +142,11 @@ export class LevelScene {
         this.acc -= STEP
         this.events.length = 0
         const starsBefore = [...sim.stars]
+        // the ghost steps in lockstep with the player, and only during play, like the recording
+        if (screen === 'playing') {
+          this.recorder.record(input)
+          this.ghost?.step()
+        }
         sim.step(input, this.events)
         for (const e of this.events) this.handleEvent(e, starsBefore)
       }
@@ -151,10 +166,11 @@ export class LevelScene {
       }
       if (this.deathTimer > 0 && (this.deathTimer -= dt) <= 0) {
         sim.respawn()
+        this.recorder.markRespawn()
         game.died()
         game.setRunStars([...sim.stars])
       }
-      if (this.winTimer > 0 && (this.winTimer -= dt) <= 0) game.completeLevel(this.time, [...sim.stars])
+      if (this.winTimer > 0 && (this.winTimer -= dt) <= 0) game.completeLevel(this.time, [...sim.stars], this.recorder.encode())
     }
 
     // interpolate between the last two physics steps for smooth motion
@@ -186,6 +202,7 @@ export class LevelScene {
     this.background.update()
     this.world.update()
     this.player.update(dt)
+    this.ghostView?.update(screen === 'playing' || screen === 'paused')
     this.fx.update(dt)
   }
 

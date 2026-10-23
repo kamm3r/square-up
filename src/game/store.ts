@@ -1,3 +1,4 @@
+import { saveGhost } from './ghost.js'
 import { LEVELS } from './levels.js'
 import { isMuted, playSfx, setHidden, setMuted, startMusic } from './audio.js'
 
@@ -78,12 +79,14 @@ export const died = () => set({ deaths: state.deaths + 1 })
 export const setTime = (time: number) => set({ time })
 export const setRunStars = (runStars: boolean[]) => set({ runStars })
 
-export function completeLevel(time: number, runStars: boolean[]) {
+/** `ghost` is the run's recording (see ghost.ts), kept if this is the level's new best time. */
+export function completeLevel(time: number, runStars: boolean[], ghost: string) {
   const { level, deaths, best, unlocked, stars } = state
   const old = stars[level] ?? []
   const merged = runStars.map((got, i) => got || !!old[i])
   const result = { time, deaths, stars: runStars.filter(Boolean).length }
   const prev = best[level]
+  if (!prev || time < prev.time) saveGhost(LEVELS[level], ghost)
   const save: Save = {
     unlocked: Math.max(unlocked, Math.min(level + 1, LEVELS.length - 1)),
     best: { ...best, [level]: !prev || time < prev.time ? result : prev },
