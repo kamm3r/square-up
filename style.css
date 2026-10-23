@@ -225,10 +225,6 @@ body[data-screen='controls'] #game {
   stroke: none;
 }
 
-.scroll .crest-ring {
-  fill: #10131b;
-}
-
 .logo {
   margin: 6px 0 10px;
   font-size: 84px;
@@ -681,7 +677,7 @@ body {
 /* phones held sideways are short: shrink the HUD and menus to fit */
 @media (max-height: 500px) {
   .title-logo {
-    margin-bottom: 14px;
+    margin-bottom: 24px;
   }
 
   .title-logo .scroll {

@@ -42,8 +42,8 @@ const soundLabel = () => (state.muted ? 'Sound off' : 'Sound on')
 
 // ---------- screens
 
-// ---------- title menus, styled after Hollow Knight's: an engraved-looking logo between curly
-// ornaments, a misty background, and a plain text menu whose selected item gets a marker either side
+// ---------- title menus, styled after Hollow Knight's: a glowing logo under a curly ornament,
+// a misty background, and a plain text menu whose selected item gets a marker either side
 
 const VERSION = 'v1.1'
 
@@ -54,27 +54,13 @@ const SCROLL_TOP = `
   <path d="M238 27 C252 29 262 34 276 31"/>
   <circle cx="288" cy="30" r="3.5" class="dot"/>`
 
-const SCROLL_BOTTOM = `
-  <path d="M46 26 C86 26 104 6 146 10 C180 13 182 44 158 44 C140 44 140 26 156 27"/>
-  <path d="M146 10 C206 4 236 34 286 26 C314 22 318 2 300 2 C288 2 287 15 298 15"/>
-  <path d="M60 34 C100 38 126 56 168 54 C196 53 210 40 232 44"/>
-  <path d="M286 26 C306 30 322 36 340 32"/>
-  <circle cx="352" cy="31" r="3.5" class="dot"/>`
-
-function scroll(half: string, width: number, height: number, middle = '') {
+function scroll(half: string, width: number, height: number) {
   return `
     <svg class="scroll" viewBox="${-width / 2} 0 ${width} ${height}" width="${width}" height="${height}">
       <g>${half}</g>
       <g transform="scale(-1 1)">${half}</g>
-      ${middle}
     </svg>`
 }
-
-// the bottom scroll holds the hero in an oval crest, with a little point hanging below
-const CREST = `
-  <path d="M-10 60 L0 78 L10 60" />
-  <ellipse cx="0" cy="30" rx="30" ry="34" class="crest-ring"/>
-  <image href="public/icon.svg" x="-18" y="12" width="36" height="36" style="image-rendering: pixelated"/>`
 
 /** The selected item's marker: a leaf pointing at the text, then a diamond. */
 const MARK = `
@@ -117,7 +103,6 @@ function titleScreen() {
       <div class="title-logo">
         ${scroll(SCROLL_TOP, 600, 50)}
         <h1 class="logo">SQUARE UP</h1>
-        ${scroll(SCROLL_BOTTOM, 720, 82, CREST)}
       </div>
       <nav class="menu">
         ${menuItem(unlocked > 0 ? 'Continue' : 'Start Game', `data-action="start" data-level="${unlocked}"`)}
