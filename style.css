@@ -101,7 +101,7 @@ body {
   transform: translateY(8px);
 }
 
-/* ---------- title menus (title, level select, controls) */
+/* ---------- title menus (title, level select, settings) */
 
 /* the level stays bright up top and fades to dark where the menu is */
 .menu-shade {
@@ -315,11 +315,34 @@ button.menu-item:disabled {
   font-size: 16px;
 }
 
-.controls {
-  margin-bottom: 14px;
-  font-size: 12px;
-  line-height: 2.4;
-  color: #cbdbfc;
+/* the Back at the bottom of Settings sits apart from the sections */
+.menu-item.back.far {
+  margin-top: 36px;
+}
+
+/* controller and keyboard pages: what each action is bound to */
+.bindings {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+  font-size: 15px;
+  text-shadow: 2px 2px 0 #1a1c2c;
+}
+
+.bindings div {
+  display: grid;
+  grid-template-columns: 9ch 300px;
+  gap: 18px;
+  align-items: center;
+  text-align: left;
+}
+
+.bindings .name {
+  color: #fbf236;
+}
+
+.bindings .value {
+  color: #f4f4f4;
 }
 
 .corner {
@@ -723,10 +746,18 @@ body {
     margin-top: 6px;
   }
 
-  .controls {
-    margin-bottom: 4px;
-    font-size: 11px;
-    line-height: 2.2;
+  .menu-item.back.far {
+    margin-top: 10px;
+  }
+
+  .bindings {
+    gap: 4px;
+    margin-bottom: 6px;
+    font-size: 12px;
+  }
+
+  .bindings div {
+    grid-template-columns: 9ch 260px;
   }
 
   .corner {

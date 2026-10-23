@@ -3,6 +3,7 @@ import { pollGamepad } from './game/input.js'
 import { LevelScene } from './game/level-scene.js'
 import { LEVELS } from './game/levels.js'
 import { pixelView, type View } from './game/scene/shared.js'
+import { onSettingsChange, settings } from './game/settings.js'
 import { state } from './game/store.js'
 import { createTextures } from './game/textures.js'
 import { mountOverlay } from './ui/overlay.js'
@@ -37,15 +38,31 @@ resize()
 
 mountOverlay(document.querySelector('#overlay')!)
 
-// add ?fps to the address to see the frame rate, the slowest frame, how long the game logic and
-// the drawing take per frame (averaged), and how many draw calls a frame makes, e.g. to check a phone
-const fpsBox = new URLSearchParams(location.search).has('fps') ? document.body.appendChild(document.createElement('div')) : null
-if (fpsBox) fpsBox.id = 'fps'
+// The FPS counter (Settings > Video, or ?fps in the address): the frame rate, the slowest frame,
+// how long the game logic and the drawing take per frame (averaged), and how many draw calls a
+// frame makes, e.g. to check a phone.
+const fpsInAddress = new URLSearchParams(location.search).has('fps')
+let fpsBox: HTMLElement | null = null
 let fpsFrames = 0
 let fpsWorst = 0
 let fpsSince = performance.now()
 let updateMs = 0
 let renderMs = 0
+
+function showFps() {
+  const show = fpsInAddress || settings.fps
+  if (show && !fpsBox) {
+    fpsBox = document.body.appendChild(document.createElement('div'))
+    fpsBox.id = 'fps'
+    fpsFrames = fpsWorst = updateMs = renderMs = 0
+    fpsSince = performance.now()
+  } else if (!show && fpsBox) {
+    fpsBox.remove()
+    fpsBox = null
+  }
+}
+showFps()
+onSettingsChange(showFps)
 
 function countFrame(now: number, delta: number) {
   fpsFrames++

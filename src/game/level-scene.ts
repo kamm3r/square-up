@@ -201,7 +201,7 @@ export class LevelScene {
     this.background.update()
     this.world.update()
     this.player.update(dt)
-    this.ghostView?.update(screen === 'playing' || screen === 'paused')
+    this.ghostView?.update(settings.ghost && (screen === 'playing' || screen === 'paused'))
     this.fx.update(dt)
   }
 

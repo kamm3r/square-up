@@ -17,7 +17,8 @@ compiler is a binary in `lib/`, and a Makefile builds it.
   with it too.
 - **Touch:** left half of the screen moves (slide your thumb), right half jumps.
 - **Ghost:** your best run on each level is saved and replays as a see-through square to race.
-- **Settings:** music and effects volume, screen shake and fullscreen, saved between sessions.
+- **Settings**, saved between sessions: Game (screen shake, ghost), Audio (sound, music and effects
+  volume), Video (fullscreen, FPS counter), and the Controller and Keyboard (or Touch) layouts.
   The game pauses itself when you switch tabs or apps.
 
 ## Download and play
@@ -45,8 +46,9 @@ You need `curl` and `tar` for `make deps`, and `node` for `make serve`. The dev 
 needs a server, and this one makes the browser pick up every rebuild on a plain refresh and
 gzips text files (three.js goes from 2.1 MB to 0.4 MB). `make watch` recompiles on every save.
 
-Add `?fps` to the address (e.g. `http://localhost:5317/?fps`) to see the frame rate, the slowest
-frame, how long game logic and drawing take per frame, and the number of draw calls.
+The FPS counter (Settings > Video, or `?fps` in the address, e.g. `http://localhost:5317/?fps`)
+shows the frame rate, the slowest frame, how long game logic and drawing take per frame, and the
+number of draw calls.
 
 `make dist` (needs `go`) builds the downloadable programs into `dist/`. Each one is
 `launcher/main.go` with the game files packed inside (text files gzipped): it serves them on

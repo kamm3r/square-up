@@ -2,10 +2,30 @@ import { saveGhost } from './ghost.js'
 import { LEVELS } from './levels.js'
 import { isMuted, playSfx, setHidden, setMuted, startMusic } from './audio.js'
 
-export type Screen = 'title' | 'levels' | 'settings' | 'controls' | 'playing' | 'paused' | 'complete' | 'victory'
+/** The title screen and the menus under it: no HUD, and the level plays as a backdrop. */
+export type MenuScreen =
+  | 'title'
+  | 'levels'
+  | 'settings'
+  | 'settings-game'
+  | 'settings-audio'
+  | 'settings-video'
+  | 'settings-controller'
+  | 'settings-keyboard'
+export type Screen = MenuScreen | 'playing' | 'paused' | 'complete' | 'victory'
 
-/** The title screen and its sub-menus: no HUD, and the level plays as a backdrop. */
-export const MENU_SCREENS: Screen[] = ['title', 'levels', 'settings', 'controls']
+/** Where Back (or Esc) goes from each menu. */
+const MENU_PARENT: Record<MenuScreen, MenuScreen | null> = {
+  title: null,
+  levels: 'title',
+  settings: 'title',
+  'settings-game': 'settings',
+  'settings-audio': 'settings',
+  'settings-video': 'settings',
+  'settings-controller': 'settings',
+  'settings-keyboard': 'settings',
+}
+export const MENU_SCREENS = Object.keys(MENU_PARENT) as Screen[]
 
 export type Result = { time: number; deaths: number; stars: number }
 
@@ -116,10 +136,16 @@ document.addEventListener('visibilitychange', () => {
   setHidden(document.hidden)
 })
 
-/** The title screen's sub-menus. */
-export function showMenu(screen: 'levels' | 'settings' | 'controls') {
+/** Open one of the menus. */
+export function showMenu(screen: MenuScreen) {
   playSfx('tap', 0.3)
   set({ screen })
+}
+
+/** Back up one menu, e.g. from Audio to Settings, or from Settings to the title. */
+export function backMenu() {
+  const parent = MENU_PARENT[state.screen as MenuScreen]
+  if (parent) showMenu(parent)
 }
 
 export function toggleMute() {
