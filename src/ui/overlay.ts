@@ -74,6 +74,19 @@ function titleScreen() {
     </div>`
 }
 
+function startScreen() {
+  const collected = countStars(state.stars)
+  return `
+    <div class="start">
+      <div class="start-hero"><div class="hero"></div><div class="hero-shadow"></div></div>
+      <h1 class="logo">SQUARE<span>UP</span></h1>
+      <p class="tagline">a tiny platformer in ${LEVELS.length} levels</p>
+      <p class="press keys-only">press any key to start</p>
+      <p class="press touch-only">tap to start</p>
+      ${collected > 0 ? `<p class="start-stars">${starIcon(true, 14)} ${collected} / ${TOTAL_STARS}</p>` : ''}
+    </div>`
+}
+
 const pausedScreen = () => `
   <div class="panel">
     <h2>Paused</h2>
@@ -120,6 +133,7 @@ function victoryScreen() {
 }
 
 const SCREENS: Partial<Record<game.Screen, () => string>> = {
+  start: startScreen,
   title: titleScreen,
   paused: pausedScreen,
   complete: completeScreen,
@@ -184,7 +198,7 @@ export function mountOverlay(root: HTMLElement) {
     // CSS shows the touch buttons only while playing, on touch screens
     root.dataset.screen = state.screen
     setTouchEnabled(state.screen === 'playing')
-    hud.hidden = state.screen === 'title'
+    hud.hidden = state.screen === 'start' || state.screen === 'title'
     if (state.screen !== 'playing') hint.classList.add('hidden')
     field('time').textContent = formatTime(state.time)
     field('deaths').textContent = String(state.deaths)
@@ -220,9 +234,19 @@ export function mountOverlay(root: HTMLElement) {
   // keep HUD buttons from taking focus when clicked
   hud.addEventListener('mousedown', (e) => e.preventDefault())
 
+  // the start screen goes to the menu on any key, click or tap
+  window.addEventListener('click', () => {
+    if (state.screen === 'start') game.openMenu()
+  })
+
   window.addEventListener('keydown', (e) => {
     if (e.repeat) return
     const { screen } = state
+    if (screen === 'start') {
+      // modifier keys alone (like Alt+Tab or a screenshot shortcut) don't count
+      if (!['Alt', 'Control', 'Meta', 'Shift', 'Tab'].includes(e.key)) game.openMenu()
+      return
+    }
     if (e.code === 'Escape' || e.code === 'KeyP') game.togglePause()
     else if (e.code === 'KeyM') game.toggleMute()
     else if (e.code === 'KeyR' && (screen === 'playing' || screen === 'paused')) game.restart()

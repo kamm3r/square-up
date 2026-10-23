@@ -4,6 +4,11 @@ A small pixel-art platformer in five levels, written in TypeScript with three.js
 p2-es for physics. No framework, no bundler and no npm: the libraries are files in `lib/`, the
 compiler is a binary in `lib/`, and a Makefile builds it.
 
+| | |
+| --- | --- |
+| ![Start screen](docs/start.png) | ![Level 1, First Steps](docs/level-1.png) |
+| ![Level 3, Shuttle Run: moving platforms, crumbling blocks and a spinning saw](docs/shuttle-run.png) | ![Level 4, The Wall: a night level with saws and a spring](docs/the-wall.png) |
+
 ## Download and play
 
 Grab the program for your system from the
@@ -47,6 +52,7 @@ lib/              third-party code, like a C/C++ include folder (see tools/fetch
 build/            compiler output, loaded by index.html
 tools/            dependency download script and the level-check bot
 launcher/         the downloadable program (Go), built by `make dist`
+docs/             screenshots for this README
 ```
 
 ## Checking levels

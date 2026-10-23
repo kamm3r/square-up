@@ -100,6 +100,172 @@ body {
   transform: translateY(8px);
 }
 
+/* ---------- start screen */
+
+.start {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  text-align: center;
+  animation: start-in 0.5s ease-out;
+}
+
+/* dims the level behind the start screen so the text reads over any part of it */
+.overlay[data-screen='start']::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #1a1c2c66;
+}
+
+@keyframes start-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+.start-hero {
+  --hero: 96px;
+  position: relative;
+  width: var(--hero);
+  height: calc(var(--hero) * 2.1);
+}
+
+/* the hero from the icon, jumping on a loop with the same squash & stretch as in the game */
+.hero {
+  position: absolute;
+  left: 0;
+  bottom: calc(var(--hero) / 12);
+  width: var(--hero);
+  height: var(--hero);
+  background: url('public/icon.svg') center / contain no-repeat;
+  image-rendering: pixelated;
+  transform-origin: 50% 100%;
+  animation: hero-jump 1.6s infinite;
+}
+
+@keyframes hero-jump {
+  0%,
+  100% {
+    transform: none;
+    animation-timing-function: ease-in-out;
+  }
+  12% {
+    transform: scale(1.35, 0.6);
+    animation-timing-function: ease-out;
+  }
+  24% {
+    transform: translateY(-62%) scale(0.72, 1.55);
+    animation-timing-function: ease-out;
+  }
+  42% {
+    transform: translateY(-100%) scale(1, 1);
+    animation-timing-function: ease-in;
+  }
+  62% {
+    transform: translateY(-21%) scale(0.85, 1.2);
+    animation-timing-function: linear;
+  }
+  66% {
+    transform: scale(1.45, 0.5);
+    animation-timing-function: ease-out;
+  }
+  76% {
+    transform: scale(0.88, 1.15);
+    animation-timing-function: ease-in-out;
+  }
+  86% {
+    transform: scale(1.06, 0.95);
+  }
+}
+
+.hero-shadow {
+  position: absolute;
+  left: 8%;
+  bottom: 0;
+  width: 84%;
+  height: calc(var(--hero) / 10);
+  background: #1a1c2c80;
+  animation: hero-shadow 1.6s infinite;
+}
+
+@keyframes hero-shadow {
+  0%,
+  100% {
+    transform: none;
+  }
+  12% {
+    transform: scaleX(1.3);
+  }
+  42% {
+    transform: scaleX(0.45);
+    opacity: 0.5;
+  }
+  66% {
+    transform: scaleX(1.4);
+  }
+}
+
+.logo {
+  margin: 12px 0 0;
+  font-size: 88px;
+  font-weight: bold;
+  letter-spacing: 4px;
+  color: #41a6f6;
+  text-shadow:
+    6px 6px 0 #1a1c2c,
+    9px 9px 0 #3b5dc9;
+}
+
+.logo span {
+  margin-left: 32px;
+  color: #ef7d57;
+  text-shadow:
+    6px 6px 0 #1a1c2c,
+    9px 9px 0 #b13e53;
+}
+
+.tagline {
+  margin: 14px 0 36px;
+  font-size: 16px;
+  color: #cbdbfc;
+  text-shadow: 2px 2px 0 #1a1c2c;
+}
+
+.press {
+  margin: 0;
+  font-size: 20px;
+  color: #fbf236;
+  text-shadow: 3px 3px 0 #1a1c2c;
+  animation: blink 1.1s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.start-stars {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 24px 0 0;
+  font-size: 14px;
+  color: #fbf236;
+  text-shadow: 2px 2px 0 #1a1c2c;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero,
+  .hero-shadow,
+  .press {
+    animation: none;
+  }
+}
+
 /* ---------- panels */
 
 .panel {
@@ -470,6 +636,23 @@ body {
 
 /* phones held sideways are short: shrink the HUD and menus to fit */
 @media (max-height: 500px) {
+  .start-hero {
+    --hero: 52px;
+  }
+
+  .logo {
+    font-size: 48px;
+  }
+
+  .tagline {
+    margin: 8px 0 16px;
+    font-size: 12px;
+  }
+
+  .press {
+    font-size: 15px;
+  }
+
   .hud {
     top: 8px;
     left: 8px;
@@ -547,6 +730,14 @@ body {
 
 /* phones held upright are narrow: let the HUD wrap instead of pushing buttons off screen */
 @media (max-width: 600px) {
+  .logo {
+    font-size: 44px;
+  }
+
+  .logo span {
+    margin-left: 16px;
+  }
+
   .hud {
     flex-wrap: wrap;
     top: 8px;

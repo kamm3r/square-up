@@ -1,7 +1,7 @@
 import { LEVELS } from './levels.js'
 import { isMuted, playSfx, setMuted, startMusic } from './audio.js'
 
-export type Screen = 'title' | 'playing' | 'paused' | 'complete' | 'victory'
+export type Screen = 'start' | 'title' | 'playing' | 'paused' | 'complete' | 'victory'
 export type Result = { time: number; deaths: number; stars: number }
 
 const SAVE_KEY = 'square-up:save'
@@ -40,7 +40,7 @@ export type GameState = Save & {
 /** The whole game state. Read it freely; change it only through the actions below. */
 export const state: GameState = {
   ...loadSave(),
-  screen: 'title',
+  screen: 'start',
   level: 0,
   attempt: 0,
   deaths: 0,
@@ -61,6 +61,13 @@ export function subscribe(fn: () => void) {
 function set(patch: Partial<GameState>) {
   Object.assign(state, patch)
   for (const fn of listeners) fn()
+}
+
+/** Leave the start screen for the level menu. It's the first key or tap, so sound can start. */
+export function openMenu() {
+  startMusic()
+  playSfx('tap')
+  set({ screen: 'title' })
 }
 
 export function startLevel(level: number) {
