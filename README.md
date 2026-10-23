@@ -6,7 +6,7 @@ compiler is a binary in `lib/`, and a Makefile builds it.
 
 | | |
 | --- | --- |
-| ![Start screen](docs/start.png) | ![Level 1, First Steps](docs/level-1.png) |
+| ![Title screen](docs/start.png) | ![Level 1, First Steps](docs/level-1.png) |
 | ![Level 3, Shuttle Run: moving platforms, crumbling blocks and a spinning saw](docs/shuttle-run.png) | ![Level 4, The Wall: a night level with saws and a spring](docs/the-wall.png) |
 
 ## Download and play

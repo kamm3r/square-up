@@ -1,3 +1,4 @@
+import { startMusic } from '../game/audio.js'
 import { setTouchEnabled } from '../game/input.js'
 import { LEVELS } from '../game/levels.js'
 import * as game from '../game/store.js'
@@ -41,51 +42,68 @@ const soundLabel = () => (state.muted ? 'Sound off' : 'Sound on')
 
 // ---------- screens
 
+// ---------- title menus: text items in a column, the selected one marked by a star either side
+
+const VERSION = 'v1.1'
+
+function menuItem(label: string, attrs: string, cls = '') {
+  const mark = `<span class="mark">${starIcon(true, 12)}</span>`
+  return `<button class="menu-item ${cls}" ${attrs}>${mark}<span class="label">${label}</span>${mark}</button>`
+}
+
 function titleScreen() {
+  const { unlocked } = state
+  return `
+    <div class="menu-screen">
+      <h1 class="logo">SQUARE<span>UP</span></h1>
+      <div class="ornament"><i></i><div class="crest"></div><i></i></div>
+      <nav class="menu">
+        ${menuItem(unlocked > 0 ? 'Continue' : 'Start Game', `data-action="start" data-level="${unlocked}"`)}
+        ${menuItem('Level Select', 'data-action="levels"')}
+        ${menuItem('Controls', 'data-action="controls"')}
+        ${menuItem(`Sound: ${state.muted ? 'Off' : 'On'}`, 'data-action="mute"')}
+      </nav>
+    </div>
+    <div class="corner left">${VERSION}</div>
+    <div class="corner right">${starIcon(true, 12)} ${countStars(state.stars)} / ${TOTAL_STARS}</div>`
+}
+
+function levelsScreen() {
   const { unlocked, best, stars } = state
-  const levels = LEVELS.map((l, i) => {
-    const time = best[i] ? formatTime(best[i].time) : i > unlocked ? 'locked' : '--'
-    return `
-      <button data-action="start" data-level="${i}" ${i > unlocked ? 'disabled' : ''} title="${l.name}">
-        <strong>${i + 1}</strong>
-        ${starRow(stars[i] ?? [], l.stars.length, 11)}
-        <small>${time}</small>
-      </button>`
+  const rows = LEVELS.map((l, i) => {
+    const locked = i > unlocked
+    const time = best[i] ? formatTime(best[i].time) : '--'
+    const label = `
+      <span class="num">${i + 1}</span>
+      <span class="name">${locked ? 'locked' : l.name}</span>
+      ${starRow(stars[i] ?? [], l.stars.length, 11)}
+      <span class="time">${locked ? '' : time}</span>`
+    return menuItem(label, `data-action="start" data-level="${i}" ${locked ? 'disabled' : ''}`, 'level-row')
   }).join('')
   return `
-    <div class="panel title">
-      <h1>SQUARE<span>UP</span></h1>
-      <p class="sub">a tiny platformer in 5 levels</p>
-      <button class="primary" data-action="start" data-level="${unlocked}">
-        ${unlocked > 0 ? `Continue (level ${unlocked + 1})` : 'Play'}
-      </button>
-      <div class="levels">${levels}</div>
-      <p class="total-stars">${starIcon(true, 14)} ${countStars(stars)} / ${TOTAL_STARS}</p>
-      <div class="controls keys-only">
-        <div><kbd>A</kbd><kbd>D</kbd> / <kbd>&larr;</kbd><kbd>&rarr;</kbd> move</div>
-        <div><kbd>Space</kbd> / <kbd>W</kbd> jump (hold for higher)</div>
-        <div><kbd>R</kbd> restart &nbsp; <kbd>Esc</kbd> pause &nbsp; <kbd>M</kbd> mute</div>
-      </div>
-      <div class="controls touch-only">
-        <div>Left half of the screen: move (slide your thumb)</div>
-        <div>Right half: jump (hold for higher)</div>
-      </div>
-      <button class="link" data-action="mute">Sound: ${state.muted ? 'off' : 'on'}</button>
+    <div class="menu-screen">
+      <h2 class="menu-title">Level Select</h2>
+      <nav class="menu">
+        ${rows}
+        ${menuItem('Back', 'data-action="title"', 'back')}
+      </nav>
     </div>`
 }
 
-function startScreen() {
-  const collected = countStars(state.stars)
-  return `
-    <div class="start">
-      <div class="start-hero"><div class="hero"></div><div class="hero-shadow"></div></div>
-      <h1 class="logo">SQUARE<span>UP</span></h1>
-      <p class="tagline">a tiny platformer in ${LEVELS.length} levels</p>
-      <p class="press keys-only">press any key to start</p>
-      <p class="press touch-only">tap to start</p>
-      ${collected > 0 ? `<p class="start-stars">${starIcon(true, 14)} ${collected} / ${TOTAL_STARS}</p>` : ''}
-    </div>`
-}
+const controlsScreen = () => `
+  <div class="menu-screen">
+    <h2 class="menu-title">Controls</h2>
+    <div class="controls keys-only">
+      <div><kbd>A</kbd><kbd>D</kbd> / <kbd>&larr;</kbd><kbd>&rarr;</kbd> move</div>
+      <div><kbd>Space</kbd> / <kbd>W</kbd> jump (hold for higher)</div>
+      <div><kbd>R</kbd> restart &nbsp; <kbd>Esc</kbd> pause &nbsp; <kbd>M</kbd> mute</div>
+    </div>
+    <div class="controls touch-only">
+      <div>Left half of the screen: move (slide your thumb)</div>
+      <div>Right half: jump (hold for higher)</div>
+    </div>
+    <nav class="menu">${menuItem('Back', 'data-action="title"', 'back')}</nav>
+  </div>`
 
 const pausedScreen = () => `
   <div class="panel">
@@ -132,9 +150,13 @@ function victoryScreen() {
     </div>`
 }
 
+/** The title screen and its sub-menus: no HUD, the level dimmed behind. */
+const MENUS: game.Screen[] = ['title', 'levels', 'controls']
+
 const SCREENS: Partial<Record<game.Screen, () => string>> = {
-  start: startScreen,
   title: titleScreen,
+  levels: levelsScreen,
+  controls: controlsScreen,
   paused: pausedScreen,
   complete: completeScreen,
   victory: victoryScreen,
@@ -195,10 +217,11 @@ export function mountOverlay(root: HTMLElement) {
       hintTimer = setTimeout(() => hint.classList.add('hidden'), 4500)
     }
 
-    // CSS shows the touch buttons only while playing, on touch screens
+    // CSS shows the touch buttons only while playing (on touch screens) and blurs the level in menus
     root.dataset.screen = state.screen
+    document.body.dataset.screen = state.screen
     setTouchEnabled(state.screen === 'playing')
-    hud.hidden = state.screen === 'start' || state.screen === 'title'
+    hud.hidden = MENUS.includes(state.screen)
     if (state.screen !== 'playing') hint.classList.add('hidden')
     field('time').textContent = formatTime(state.time)
     field('deaths').textContent = String(state.deaths)
@@ -213,9 +236,12 @@ export function mountOverlay(root: HTMLElement) {
     const mutedChanged = shownMuted !== state.muted && state.screen === 'title'
     shownMuted = state.muted
     if (state.screen !== shownScreen || mutedChanged) {
+      // coming back from a sub-menu (or toggling sound), select the item that was used
+      const from = shownScreen === state.screen ? 'mute' : shownScreen === 'levels' || shownScreen === 'controls' ? shownScreen : ''
       shownScreen = state.screen
       screenEl.innerHTML = SCREENS[state.screen]?.() ?? ''
-      el<HTMLButtonElement>('button.primary', screenEl)?.focus()
+      const back = from ? screenEl.querySelector<HTMLButtonElement>(`[data-action="${from}"]`) : null
+      ;(back ?? screenEl.querySelector<HTMLButtonElement>('button.primary, .menu-item:not(:disabled)'))?.focus()
     }
   }
 
@@ -228,25 +254,42 @@ export function mountOverlay(root: HTMLElement) {
       case 'restart': return game.restart()
       case 'pause': return game.togglePause()
       case 'title': return game.toTitle()
+      case 'levels':
+      case 'controls': return game.showMenu(button.dataset.action)
       case 'mute': return game.toggleMute()
     }
   })
   // keep HUD buttons from taking focus when clicked
   hud.addEventListener('mousedown', (e) => e.preventDefault())
 
-  // the start screen goes to the menu on any key, click or tap
-  window.addEventListener('click', () => {
-    if (state.screen === 'start') game.openMenu()
+  // the mouse selects what it points at, so keyboard and mouse share one marker
+  screenEl.addEventListener('pointerover', (e) => {
+    const item = (e.target as HTMLElement).closest<HTMLButtonElement>('.menu-item')
+    if (item && !item.disabled && e.pointerType === 'mouse') item.focus()
   })
 
+  // browsers only allow sound after the first key or click, so start the music then
+  const startMusicOnce = () => {
+    if (MENUS.includes(state.screen)) startMusic()
+    window.removeEventListener('click', startMusicOnce)
+    window.removeEventListener('keydown', startMusicOnce)
+  }
+  window.addEventListener('click', startMusicOnce)
+  window.addEventListener('keydown', startMusicOnce)
+
   window.addEventListener('keydown', (e) => {
-    if (e.repeat) return
     const { screen } = state
-    if (screen === 'start') {
-      // modifier keys alone (like Alt+Tab or a screenshot shortcut) don't count
-      if (!['Alt', 'Control', 'Meta', 'Shift', 'Tab'].includes(e.key)) game.openMenu()
+    // up and down move through menu items
+    const step = { ArrowUp: -1, KeyW: -1, ArrowDown: 1, KeyS: 1 }[e.code]
+    if (step && screenEl.querySelector('.menu')) {
+      const items = [...screenEl.querySelectorAll<HTMLButtonElement>('.menu-item:not(:disabled)')]
+      const at = items.indexOf(document.activeElement as HTMLButtonElement)
+      items[(at + step + items.length) % items.length]?.focus()
+      e.preventDefault()
       return
     }
+    if (e.repeat) return
+    if (e.code === 'Escape' && (screen === 'levels' || screen === 'controls')) return game.toTitle()
     if (e.code === 'Escape' || e.code === 'KeyP') game.togglePause()
     else if (e.code === 'KeyM') game.toggleMute()
     else if (e.code === 'KeyR' && (screen === 'playing' || screen === 'paused')) game.restart()
