@@ -2,6 +2,10 @@ import { LEVELS } from './levels.js'
 import { isMuted, playSfx, setMuted, startMusic } from './audio.js'
 
 export type Screen = 'title' | 'levels' | 'controls' | 'playing' | 'paused' | 'complete' | 'victory'
+
+/** The title screen and its sub-menus: no HUD, and the level plays as a backdrop. */
+export const MENU_SCREENS: Screen[] = ['title', 'levels', 'controls']
+
 export type Result = { time: number; deaths: number; stars: number }
 
 const SAVE_KEY = 'square-up:save'

@@ -164,8 +164,13 @@ export class LevelScene {
     frame.px = sim.prevX + (p[0] - sim.prevX) * frame.alpha
     frame.py = sim.prevY + (p[1] - sim.prevY) * frame.alpha
 
-    // camera follow (starts on the player instead of sliding in), snapped to whole screen pixels
-    const [tx, ty] = this.clampCam(frame.px, frame.py + 1)
+    // camera follow (starts on the player instead of sliding in), snapped to whole screen pixels.
+    // Behind the title menus it drifts slowly across the level and back instead.
+    let [tx, ty] = this.clampCam(frame.px, frame.py + 1)
+    if (game.MENU_SCREENS.includes(screen)) {
+      const span = Math.max(0, this.level.width - view.halfW * 2)
+      ;[tx, ty] = this.clampCam(view.halfW + span * (0.5 - 0.5 * Math.cos(clock * 0.04)), this.level.start[1] + 2)
+    }
     if (!this.cam) this.cam = [tx, ty]
     const k = 1 - Math.exp(-dt * 6)
     this.cam[0] += (tx - this.cam[0]) * k

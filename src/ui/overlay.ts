@@ -42,96 +42,51 @@ const soundLabel = () => (state.muted ? 'Sound off' : 'Sound on')
 
 // ---------- screens
 
-// ---------- title menus, styled after Hollow Knight's: a glowing logo under a curly ornament,
-// a misty background, and a plain text menu whose selected item gets a marker either side
+// ---------- title menus: the logo over the level, then a short pixel menu where the little hero
+// bobs next to the selected item
 
 const VERSION = 'v1.1'
 
-/** One half of a scroll ornament (the right side); the left side is the same, mirrored. */
-const SCROLL_TOP = `
-  <path d="M14 30 C60 30 78 12 116 15 C146 17 148 42 128 42 C113 42 113 28 126 28"/>
-  <path d="M116 15 C168 9 196 32 238 27 C262 24 268 8 252 7 C241 6 240 18 250 18"/>
-  <path d="M238 27 C252 29 262 34 276 31"/>
-  <circle cx="288" cy="30" r="3.5" class="dot"/>`
-
-function scroll(half: string, width: number, height: number) {
-  return `
-    <svg class="scroll" viewBox="${-width / 2} 0 ${width} ${height}" width="${width}" height="${height}">
-      <g>${half}</g>
-      <g transform="scale(-1 1)">${half}</g>
-    </svg>`
-}
-
-/** The selected item's marker: a leaf pointing at the text, then a diamond. */
-const MARK = `
-  <svg class="mark" viewBox="0 0 34 16" width="34" height="16">
-    <path d="M2 8 L7 3 L12 8 L7 13 Z"/>
-    <path d="M14 8 C20 2 26 2 32 8 C26 14 20 14 14 8 Z"/>
-  </svg>`
+/** The hero as the menu cursor (hidden on items that aren't selected). */
+const CURSOR = '<span class="cursor"></span>'
 
 function menuItem(label: string, attrs: string, cls = '') {
-  return `<button class="menu-item ${cls}" ${attrs}>${MARK}<span class="label">${label}</span>${MARK}</button>`
+  return `<button class="menu-item ${cls}" ${attrs}>${CURSOR}<span class="label">${label}</span></button>`
 }
-
-// slow dust specks drifting up through the light, placed at random once
-const DUST = Array.from({ length: 36 }, () => {
-  const size = 1 + Math.random() * 3
-  const style = [
-    `left:${(Math.random() * 100).toFixed(1)}%`,
-    `top:${(Math.random() * 100).toFixed(1)}%`,
-    `width:${size.toFixed(1)}px`,
-    `height:${size.toFixed(1)}px`,
-    `animation-duration:${(8 + Math.random() * 10).toFixed(1)}s`,
-    `animation-delay:${(-Math.random() * 18).toFixed(1)}s`,
-  ].join(';')
-  return `<i style="${style}"></i>`
-}).join('')
-
-/** Misty light and dust behind every title menu. */
-const ATMOSPHERE = `<div class="mist"><div class="rays"><i></i><i></i><i></i><i></i></div><div class="dust">${DUST}</div></div>`
-
-const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']
-
-const sparkle = (filled: boolean) =>
-  `<svg class="sparkle${filled ? ' filled' : ''}" viewBox="0 0 10 10" width="12" height="12"><path d="M5 0 L6.2 3.8 L10 5 L6.2 6.2 L5 10 L3.8 6.2 L0 5 L3.8 3.8 Z"/></svg>`
 
 function titleScreen() {
   const { unlocked } = state
   return `
-    ${ATMOSPHERE}
+    <div class="menu-shade"></div>
     <div class="menu-screen">
-      <div class="title-logo">
-        ${scroll(SCROLL_TOP, 600, 50)}
-        <h1 class="logo">SQUARE UP</h1>
-      </div>
+      <h1 class="logo">SQUARE<span>UP</span></h1>
+      <p class="tagline">a tiny platformer in ${LEVELS.length} levels</p>
       <nav class="menu">
-        ${menuItem(unlocked > 0 ? 'Continue' : 'Start Game', `data-action="start" data-level="${unlocked}"`)}
+        ${menuItem(unlocked > 0 ? `Continue <small>level ${unlocked + 1}</small>` : 'Start Game', `data-action="start" data-level="${unlocked}"`)}
         ${menuItem('Level Select', 'data-action="levels"')}
         ${menuItem('Controls', 'data-action="controls"')}
         ${menuItem(`Sound: ${state.muted ? 'Off' : 'On'}`, 'data-action="mute"')}
       </nav>
     </div>
     <div class="corner left">${VERSION}</div>
-    <div class="corner right">${sparkle(true)} ${countStars(state.stars)} / ${TOTAL_STARS}</div>`
+    <div class="corner right">${starIcon(true, 14)} ${countStars(state.stars)} / ${TOTAL_STARS}</div>`
 }
 
 function levelsScreen() {
   const { unlocked, best, stars } = state
   const rows = LEVELS.map((l, i) => {
     const locked = i > unlocked
-    const got = stars[i] ?? []
     const label = `
-      <span class="num">${ROMAN[i] ?? i + 1}</span>
-      <span class="name">${locked ? 'Locked' : l.name}</span>
-      <span class="stars">${l.stars.map((_, j) => sparkle(!!got[j])).join('')}</span>
-      <span class="time">${locked ? '' : best[i] ? formatTime(best[i].time) : '-'}</span>`
+      <span class="num">${i + 1}</span>
+      <span class="name">${locked ? 'locked' : l.name}</span>
+      ${starRow(stars[i] ?? [], l.stars.length, 12)}
+      <span class="time">${locked ? '' : best[i] ? formatTime(best[i].time) : '--'}</span>`
     return menuItem(label, `data-action="start" data-level="${i}" ${locked ? 'disabled' : ''}`, 'level-row')
   }).join('')
   return `
-    ${ATMOSPHERE}
+    <div class="menu-shade full"></div>
     <div class="menu-screen">
       <h2 class="menu-title">Level Select</h2>
-      ${scroll(SCROLL_TOP, 420, 50)}
       <nav class="menu">
         ${rows}
         ${menuItem('Back', 'data-action="title"', 'back')}
@@ -140,18 +95,17 @@ function levelsScreen() {
 }
 
 const controlsScreen = () => `
-  ${ATMOSPHERE}
+  <div class="menu-shade full"></div>
   <div class="menu-screen">
     <h2 class="menu-title">Controls</h2>
-    ${scroll(SCROLL_TOP, 420, 50)}
     <div class="controls keys-only">
-      <div><kbd>A</kbd><kbd>D</kbd> or <kbd>&larr;</kbd><kbd>&rarr;</kbd> &nbsp;move</div>
-      <div><kbd>Space</kbd> or <kbd>W</kbd> &nbsp;jump, hold for higher</div>
+      <div><kbd>A</kbd><kbd>D</kbd> / <kbd>&larr;</kbd><kbd>&rarr;</kbd> move</div>
+      <div><kbd>Space</kbd> / <kbd>W</kbd> jump (hold for higher)</div>
       <div><kbd>R</kbd> restart &nbsp; <kbd>Esc</kbd> pause &nbsp; <kbd>M</kbd> mute</div>
     </div>
     <div class="controls touch-only">
-      <div>Left half of the screen: move, slide your thumb</div>
-      <div>Right half: jump, hold for higher</div>
+      <div>Left half of the screen: move (slide your thumb)</div>
+      <div>Right half: jump (hold for higher)</div>
     </div>
     <nav class="menu">${menuItem('Back', 'data-action="title"', 'back')}</nav>
   </div>`
@@ -200,9 +154,6 @@ function victoryScreen() {
       <button data-action="start" data-level="0">Play again from level 1</button>
     </div>`
 }
-
-/** The title screen and its sub-menus: no HUD, the level dimmed behind. */
-const MENUS: game.Screen[] = ['title', 'levels', 'controls']
 
 const SCREENS: Partial<Record<game.Screen, () => string>> = {
   title: titleScreen,
@@ -268,11 +219,10 @@ export function mountOverlay(root: HTMLElement) {
       hintTimer = setTimeout(() => hint.classList.add('hidden'), 4500)
     }
 
-    // CSS shows the touch buttons only while playing (on touch screens) and blurs the level in menus
+    // CSS shows the touch buttons only while playing, on touch screens
     root.dataset.screen = state.screen
-    document.body.dataset.screen = state.screen
     setTouchEnabled(state.screen === 'playing')
-    hud.hidden = MENUS.includes(state.screen)
+    hud.hidden = game.MENU_SCREENS.includes(state.screen)
     if (state.screen !== 'playing') hint.classList.add('hidden')
     field('time').textContent = formatTime(state.time)
     field('deaths').textContent = String(state.deaths)
@@ -321,7 +271,7 @@ export function mountOverlay(root: HTMLElement) {
 
   // browsers only allow sound after the first key or click, so start the music then
   const startMusicOnce = () => {
-    if (MENUS.includes(state.screen)) startMusic()
+    if (game.MENU_SCREENS.includes(state.screen)) startMusic()
     window.removeEventListener('click', startMusicOnce)
     window.removeEventListener('keydown', startMusicOnce)
   }

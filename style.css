@@ -101,89 +101,18 @@ body {
   transform: translateY(8px);
 }
 
-/* ---------- title menus (title, level select, controls), laid out like Hollow Knight's title */
+/* ---------- title menus (title, level select, controls) */
 
-/* the level behind becomes dark grey mist: shapes, no detail */
-body[data-screen='title'] #game,
-body[data-screen='levels'] #game,
-body[data-screen='controls'] #game {
-  filter: blur(6px) grayscale(1) brightness(0.28);
-}
-
-.mist {
+/* the level stays bright up top and fades to dark where the menu is */
+.menu-shade {
   position: absolute;
   inset: 0;
-  overflow: hidden;
-  /* light from above the logo, darkness at the edges */
-  background:
-    radial-gradient(ellipse 55% 60% at 50% 22%, #c8d4e626, transparent 70%),
-    radial-gradient(ellipse at 50% 45%, #0b0d1266 25%, #05060afa 95%);
-  animation: menu-in 0.6s ease-out;
+  background: linear-gradient(transparent 15%, #1a1c2cb8 48%, #1a1c2ce0 65%, #1a1c2cf0);
+  animation: menu-in 0.5s ease-out;
 }
 
-/* soft shafts of light coming down from the top, slowly breathing */
-.rays i {
-  position: absolute;
-  top: -10%;
-  height: 75%;
-  width: 9%;
-  background: linear-gradient(#dfe8f530, transparent);
-  filter: blur(18px);
-  transform: skewX(-8deg);
-  animation: ray 7s ease-in-out infinite alternate;
-}
-
-.rays i:nth-child(1) {
-  left: 30%;
-}
-
-.rays i:nth-child(2) {
-  left: 42%;
-  width: 6%;
-  animation-delay: -2s;
-}
-
-.rays i:nth-child(3) {
-  left: 53%;
-  width: 11%;
-  animation-delay: -4s;
-}
-
-.rays i:nth-child(4) {
-  left: 66%;
-  width: 5%;
-  animation-delay: -6s;
-}
-
-@keyframes ray {
-  from {
-    opacity: 0.35;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* dust drifting up and fading */
-.dust i {
-  position: absolute;
-  background: #e8eef7;
-  animation: dust linear infinite;
-}
-
-@keyframes dust {
-  0% {
-    transform: translate(0, 0);
-    opacity: 0;
-  }
-  20%,
-  70% {
-    opacity: 0.7;
-  }
-  100% {
-    transform: translate(30px, -140px);
-    opacity: 0;
-  }
+.menu-shade.full {
+  background: #1a1c2cc8;
 }
 
 .menu-screen {
@@ -192,7 +121,7 @@ body[data-screen='controls'] #game {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  animation: menu-in 0.6s ease-out;
+  animation: menu-in 0.5s ease-out;
 }
 
 @keyframes menu-in {
@@ -201,71 +130,70 @@ body[data-screen='controls'] #game {
   }
 }
 
-.title-logo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 44px;
-}
-
-/* the ornaments: white strokes with a glow, like the logo */
-.scroll {
-  max-width: 90vw;
-  height: auto;
-  overflow: visible;
-  fill: none;
-  stroke: #eef2f8;
-  stroke-width: 3;
-  stroke-linecap: round;
-  filter: drop-shadow(0 0 6px #ffffff70);
-}
-
-.scroll .dot {
-  fill: #eef2f8;
-  stroke: none;
-}
-
+/* chunky pixel logo: a dark outline all round, then a coloured block shadow */
 .logo {
-  margin: 6px 0 10px;
-  font-size: 84px;
+  margin: 0;
+  font-size: 80px;
   font-weight: bold;
-  letter-spacing: 6px;
+  letter-spacing: 4px;
   white-space: nowrap;
-  color: #f4f6fa;
+  color: #41a6f6;
   text-shadow:
-    0 0 10px #ffffffa0,
-    0 0 36px #b8cff0a0;
+    -4px 0 0 #1a1c2c,
+    4px 0 0 #1a1c2c,
+    0 -4px 0 #1a1c2c,
+    0 4px 0 #1a1c2c,
+    -4px -4px 0 #1a1c2c,
+    4px -4px 0 #1a1c2c,
+    -4px 4px 0 #1a1c2c,
+    4px 4px 0 #1a1c2c,
+    8px 8px 0 #3b5dc9,
+    12px 12px 0 #1a1c2c;
+}
+
+.logo span {
+  margin-left: 32px;
+  color: #ef7d57;
+  text-shadow:
+    -4px 0 0 #1a1c2c,
+    4px 0 0 #1a1c2c,
+    0 -4px 0 #1a1c2c,
+    0 4px 0 #1a1c2c,
+    -4px -4px 0 #1a1c2c,
+    4px -4px 0 #1a1c2c,
+    -4px 4px 0 #1a1c2c,
+    4px 4px 0 #1a1c2c,
+    8px 8px 0 #b13e53,
+    12px 12px 0 #1a1c2c;
+}
+
+.tagline {
+  margin: 20px 0 40px;
+  font-size: 15px;
+  color: #f4f4f4;
+  text-shadow: 2px 2px 0 #1a1c2c;
 }
 
 .menu-title {
-  margin: 0;
+  margin: 0 0 24px;
   font-size: 30px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: #f4f6fa;
-  text-shadow: 0 0 12px #ffffff80;
-}
-
-.menu-title + .scroll {
-  margin: 4px 0 24px;
+  color: #fbf236;
+  text-shadow: 3px 3px 0 #ac3232;
 }
 
 .menu {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 button.menu-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 6px 10px;
+  position: relative;
+  padding: 6px 12px;
   font-size: 20px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: #c5ccd8;
+  color: #f4f4f4;
+  text-shadow: 3px 3px 0 #1a1c2c;
   background: none;
   border: none;
   box-shadow: none;
@@ -274,39 +202,65 @@ button.menu-item {
 button.menu-item:hover:not(:disabled),
 button.menu-item:focus {
   background: none;
-  color: #ffffff;
-  text-shadow: 0 0 10px #ffffffb0;
+  color: #fbf236;
   outline: none;
 }
 
 button.menu-item:active:not(:disabled) {
-  transform: none;
+  transform: translateY(2px);
 }
 
 button.menu-item:disabled {
-  opacity: 0.3;
+  opacity: 0.4;
 }
 
-/* the markers keep their space when hidden, so the text doesn't shift */
-.mark {
-  flex: none;
-  fill: #eef2f8;
-  filter: drop-shadow(0 0 4px #ffffffa0);
+.menu-item small {
+  margin-left: 6px;
+  font-size: 11px;
+  color: #cbdbfc;
+}
+
+/* the hero, standing just left of the selected item and hopping in place */
+.cursor {
+  position: absolute;
+  right: 100%;
+  bottom: 9px;
+  width: 22px;
+  height: 22px;
+  background: url('public/icon.svg') center / contain no-repeat;
+  image-rendering: pixelated;
+  transform-origin: 50% 100%;
   visibility: hidden;
 }
 
-.label + .mark {
-  transform: scaleX(-1);
-}
-
-.menu-item:focus .mark {
+.menu-item:focus .cursor {
   visibility: visible;
+  animation: cursor-hop 0.9s infinite;
 }
 
-/* level select rows line up: numeral, name, stars, best time */
+@keyframes cursor-hop {
+  0%,
+  100% {
+    transform: none;
+  }
+  20% {
+    transform: scale(1.25, 0.75);
+  }
+  45% {
+    transform: translateY(-8px) scale(0.85, 1.2);
+  }
+  70% {
+    transform: scale(1.2, 0.8);
+  }
+  85% {
+    transform: scale(0.95, 1.05);
+  }
+}
+
+/* level select rows line up in columns: number, name, stars, best time */
 .level-row .label {
   display: grid;
-  grid-template-columns: 4ch 15ch 48px 6ch;
+  grid-template-columns: 2ch 15ch auto 6ch;
   align-items: center;
   gap: 18px;
   font-size: 15px;
@@ -314,67 +268,49 @@ button.menu-item:disabled {
 }
 
 .level-row .num {
-  text-align: right;
-}
-
-.level-row .stars {
-  display: flex;
-  gap: 4px;
+  color: #fbf236;
 }
 
 .level-row .time {
   text-align: right;
   font-size: 12px;
-}
-
-.sparkle {
-  fill: #ffffff30;
-}
-
-.sparkle.filled {
-  fill: #fbf236;
+  color: #cbdbfc;
 }
 
 .menu-item.back {
-  margin-top: 18px;
-  font-size: 15px;
+  margin-top: 16px;
+  font-size: 16px;
 }
 
 .controls {
-  margin-bottom: 12px;
-  font-size: 13px;
-  line-height: 2.6;
-  color: #c5ccd8;
-}
-
-.menu-screen kbd {
-  background: none;
-  border: 2px solid #c5ccd880;
-  color: #ffffff;
+  margin-bottom: 14px;
+  font-size: 12px;
+  line-height: 2.4;
+  color: #cbdbfc;
 }
 
 .corner {
   position: absolute;
-  bottom: 22px;
+  bottom: 18px;
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 11px;
-  letter-spacing: 1px;
-  color: #9aa3b2;
+  color: #cbdbfc;
+  text-shadow: 2px 2px 0 #1a1c2c;
 }
 
 .corner.left {
-  left: 26px;
+  left: 22px;
 }
 
 .corner.right {
-  right: 26px;
+  right: 22px;
+  color: #fbf236;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rays i,
-  .dust i {
+  .menu-item:focus .cursor {
     animation: none;
   }
 }
@@ -676,27 +612,44 @@ body {
 
 /* phones held sideways are short: shrink the HUD and menus to fit */
 @media (max-height: 500px) {
-  .title-logo {
-    margin-bottom: 24px;
-  }
-
-  .title-logo .scroll {
-    width: 340px;
-  }
-
   .logo {
-    margin: 2px 0 4px;
     font-size: 44px;
-    letter-spacing: 3px;
+    text-shadow:
+      -2px 0 0 #1a1c2c,
+      2px 0 0 #1a1c2c,
+      0 -2px 0 #1a1c2c,
+      0 2px 0 #1a1c2c,
+      -2px -2px 0 #1a1c2c,
+      2px -2px 0 #1a1c2c,
+      -2px 2px 0 #1a1c2c,
+      2px 2px 0 #1a1c2c,
+      5px 5px 0 #3b5dc9,
+      7px 7px 0 #1a1c2c;
+  }
+
+  .logo span {
+    margin-left: 18px;
+    text-shadow:
+      -2px 0 0 #1a1c2c,
+      2px 0 0 #1a1c2c,
+      0 -2px 0 #1a1c2c,
+      0 2px 0 #1a1c2c,
+      -2px -2px 0 #1a1c2c,
+      2px -2px 0 #1a1c2c,
+      -2px 2px 0 #1a1c2c,
+      2px 2px 0 #1a1c2c,
+      5px 5px 0 #b13e53,
+      7px 7px 0 #1a1c2c;
+  }
+
+  .tagline {
+    margin: 12px 0 14px;
+    font-size: 11px;
   }
 
   .menu-title {
+    margin-bottom: 10px;
     font-size: 20px;
-  }
-
-  .menu-title + .scroll {
-    width: 260px;
-    margin: 0 0 8px;
   }
 
   .menu {
@@ -704,8 +657,14 @@ body {
   }
 
   button.menu-item {
-    padding: 4px 10px;
-    font-size: 14px;
+    padding: 4px 12px;
+    font-size: 15px;
+  }
+
+  .cursor {
+    bottom: 6px;
+    width: 16px;
+    height: 16px;
   }
 
   .level-row .label {
@@ -789,6 +748,10 @@ body {
 @media (max-width: 600px) {
   .logo {
     font-size: 40px;
+  }
+
+  .logo span {
+    margin-left: 16px;
   }
 
   .hud {
