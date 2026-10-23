@@ -2,3 +2,6 @@
 build/
 # vendored dependencies, downloaded by `make deps`
 lib/
+# downloadable programs (make dist) and the game files copied into them
+dist/
+launcher/game/

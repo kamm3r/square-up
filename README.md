@@ -4,7 +4,20 @@ A small pixel-art platformer in five levels, written in TypeScript with three.js
 p2-es for physics. No framework, no bundler and no npm: the libraries are files in `lib/`, the
 compiler is a binary in `lib/`, and a Makefile builds it.
 
-## Build and play
+## Download and play
+
+Grab the program for your system from the
+[latest release](https://github.com/kamm3r/square-up/releases/latest) and run it. It opens the
+game in your browser; keep its window open while you play.
+
+- **Windows:** `square-up-windows-x64.exe`. Windows may warn about an unknown app: choose
+  "More info", then "Run anyway".
+- **macOS:** `square-up-macos-arm64` (Apple Silicon) or `square-up-macos-x64` (Intel). The program
+  isn't signed, so the first time, run `xattr -d com.apple.quarantine square-up-macos-*` and
+  `chmod +x square-up-macos-*` in Terminal, then open it.
+- **Linux:** `square-up-linux-x64` or `square-up-linux-arm64`; `chmod +x` it, then run it.
+
+## Build and play from source
 
 ```
 make deps     # once: downloads three.js, p2-es and the TypeScript compiler into lib/
@@ -13,6 +26,10 @@ make serve    # compiles, then serves on http://localhost:5317
 
 You need `curl` and `tar` for `make deps`, and `python3` for `make serve` (any static file server
 works; ES modules just can't load from `file://`). `make watch` recompiles on every save.
+
+`make dist` (needs `go`) builds the downloadable programs into `dist/`. Each one is
+`launcher/main.go` with the game files packed inside: it serves them on `127.0.0.1:47317` and
+opens the browser there.
 
 ## Layout
 
@@ -29,6 +46,7 @@ public/           sounds and fonts
 lib/              third-party code, like a C/C++ include folder (see tools/fetch-deps.sh)
 build/            compiler output, loaded by index.html
 tools/            dependency download script and the level-check bot
+launcher/         the downloadable program (Go), built by `make dist`
 ```
 
 ## Checking levels

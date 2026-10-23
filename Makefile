@@ -6,13 +6,14 @@
 #   make serve          compile, then serve the game on http://localhost:5317
 #   make share          same, and also share it with your phone over Tailscale (see README)
 #   make check-levels   run the bot that proves every level can be beaten (needs node)
+#   make dist           build downloadable programs for Windows, macOS and Linux (needs go)
 #   make clean          delete build/
 
 TSC   := lib/typescript/tsc
 PORT  ?= 5317
 SRC   := $(shell find src tools -name '*.ts')
 
-.PHONY: all deps watch serve share unshare check-levels clean
+.PHONY: all deps watch serve share unshare check-levels dist clean
 
 all: build/.stamp
 
@@ -51,5 +52,25 @@ unshare:
 check-levels: all
 	node --import ./build/tools/lib-resolve.js build/tools/check-levels.js $(ARGS)
 
+# One program per system, each holding the whole game (see launcher/main.go), in dist/.
+# GAME is everything the browser loads: the page, assets, compiled JS and the runtime libraries.
+GAME      := launcher/game
+PLATFORMS := linux/amd64/linux-x64 linux/arm64/linux-arm64 windows/amd64/windows-x64.exe \
+             darwin/amd64/macos-x64 darwin/arm64/macos-arm64
+
+dist: all
+	rm -rf $(GAME) dist
+	mkdir -p $(GAME)/lib/three $(GAME)/lib/p2-es dist
+	cp -r index.html style.css public $(GAME)/
+	cd build && find src -name '*.js' -exec install -D -m 644 {} ../$(GAME)/build/{} \;
+	cp lib/three/three.module.js lib/three/three.core.js lib/three/LICENSE $(GAME)/lib/three/
+	cp lib/p2-es/p2-es.js lib/p2-es/LICENSE $(GAME)/lib/p2-es/
+	@for p in $(PLATFORMS); do \
+		os=$${p%%/*}; rest=$${p#*/}; arch=$${rest%%/*}; name=$${rest#*/}; \
+		echo "  dist/square-up-$$name"; \
+		(cd launcher && CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch \
+			go build -trimpath -ldflags '-s -w' -o ../dist/square-up-$$name .) || exit 1; \
+	done
+
 clean:
-	rm -rf build
+	rm -rf build dist $(GAME)
