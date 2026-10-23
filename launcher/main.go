@@ -4,18 +4,26 @@
 // sound loading there. So this serves the embedded files on 127.0.0.1 and points the browser at
 // it. The port is fixed because the browser keeps your saved progress per address.
 //
-// Built by `make dist`, which first copies the game files into launcher/game/.
+// Built by `make dist`, which first copies the game files into launcher/game/ and gzips the text
+// ones (name.js becomes name.js.gz), which makes the program about 2 MB smaller. They are sent to
+// the browser still compressed, the way web servers usually do.
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"embed"
 	"fmt"
+	"io"
 	"io/fs"
+	"mime"
 	"net"
 	"net/http"
 	"os"
 	"os/exec"
+	"path"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -45,7 +53,7 @@ func main() {
 	game, _ := fs.Sub(files, "game")
 	mux := http.NewServeMux()
 	mux.HandleFunc(pingPath, func(w http.ResponseWriter, r *http.Request) {})
-	mux.Handle("/", noCache(http.FileServerFS(game)))
+	mux.Handle("/", noCache(serveGame(game)))
 
 	fmt.Println("Square Up is running at", url)
 	fmt.Println("Keep this window open while you play. Close it (or press Ctrl+C) to quit.")
@@ -56,6 +64,36 @@ func main() {
 	if err := http.Serve(listener, mux); err != nil {
 		fail(err.Error())
 	}
+}
+
+// Serves the game files, using the gzipped copy (name.gz) where there is one.
+func serveGame(game fs.FS) http.Handler {
+	plain := http.FileServerFS(game)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		name := strings.TrimPrefix(path.Clean(r.URL.Path), "/")
+		if name == "" || name == "." {
+			name = "index.html"
+		}
+		gz, err := fs.ReadFile(game, name+".gz")
+		if err != nil {
+			plain.ServeHTTP(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(name)))
+		w.Header().Set("Vary", "Accept-Encoding")
+		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			w.Header().Set("Content-Encoding", "gzip")
+			w.Write(gz)
+			return
+		}
+		// every browser accepts gzip, but just in case: unpack it here
+		unpacked, err := gzip.NewReader(bytes.NewReader(gz))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		io.Copy(w, unpacked)
+	})
 }
 
 // Without this the browser could keep using files from an older version of the game.

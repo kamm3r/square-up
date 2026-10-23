@@ -3,7 +3,8 @@ Sounds, music and fonts come from Brackeys' platformer asset pack (repackaged by
 LICENSE: Creative Commons Zero (CC0)
 
 SOUNDS by Brackeys, Asbjørn Thirslund
-MUSIC by Brackeys, Sofia Thirslund (sfx/music.mp3, originally time_for_adventure.mp3)
+MUSIC by Brackeys, Sofia Thirslund (sfx/music.mp3, originally time_for_adventure.mp3,
+re-encoded from 320 to 128 kbps to make the download smaller)
 FONTS by Jayvee Enaguas - HarvettFox96 (https://www.dafont.com/pixel-operator.font)
 
 All other art is drawn in code (src/game/textures.ts).

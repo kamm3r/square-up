@@ -37,19 +37,25 @@ resize()
 
 mountOverlay(document.querySelector('#overlay')!)
 
-// add ?fps to the address to see the frame rate and the slowest frame, e.g. to check a phone
+// add ?fps to the address to see the frame rate, the slowest frame, how long the game logic and
+// the drawing take per frame (averaged), and how many draw calls a frame makes, e.g. to check a phone
 const fpsBox = new URLSearchParams(location.search).has('fps') ? document.body.appendChild(document.createElement('div')) : null
 if (fpsBox) fpsBox.id = 'fps'
 let fpsFrames = 0
 let fpsWorst = 0
 let fpsSince = performance.now()
+let updateMs = 0
+let renderMs = 0
 
 function countFrame(now: number, delta: number) {
   fpsFrames++
   fpsWorst = Math.max(fpsWorst, delta)
   if (now - fpsSince < 500) return
-  fpsBox!.textContent = `${Math.round((fpsFrames * 1000) / (now - fpsSince))} fps, slowest ${Math.round(fpsWorst * 1000)} ms`
-  fpsFrames = fpsWorst = 0
+  const n = fpsFrames
+  fpsBox!.textContent =
+    `${Math.round((n * 1000) / (now - fpsSince))} fps, slowest ${Math.round(fpsWorst * 1000)} ms | ` +
+    `logic ${(updateMs / n).toFixed(2)} ms, draw ${(renderMs / n).toFixed(2)} ms, ${renderer.info.render.calls} calls`
+  fpsFrames = fpsWorst = updateMs = renderMs = 0
   fpsSince = now
 }
 
@@ -65,8 +71,14 @@ function frame(now: number) {
     level = new LevelScene(LEVELS[state.level], view, textures, state.stars[state.level] ?? [])
     built = key
   }
+  const t0 = performance.now()
   level.update(delta, now / 1000, camera)
+  const t1 = performance.now()
   renderer.render(level.scene, camera)
+  if (fpsBox) {
+    updateMs += t1 - t0
+    renderMs += performance.now() - t1
+  }
   ;(window as unknown as { gameStarted: boolean }).gameStarted = true
   requestAnimationFrame(frame)
 }

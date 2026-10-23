@@ -57,14 +57,18 @@ export type View = {
 }
 
 /**
- * Renders at full screen resolution with an integer zoom: every art pixel is exactly `scale` screen
- * pixels (textures use nearest filtering, so they stay crisp), but things can move by single screen
- * pixels. Rendering at the art's low resolution instead makes moving platforms visibly jitter.
+ * Renders one canvas pixel per screen (CSS) pixel with an integer zoom: every art pixel is exactly
+ * `scale` screen pixels (textures use nearest filtering, so they stay crisp), and things can still
+ * move by single screen pixels. Rendering at the art's low resolution instead makes moving
+ * platforms visibly jitter.
+ *
+ * High-density screens (phones are 2x or 3x) don't get more canvas pixels: the browser scales the
+ * canvas up with `image-rendering: pixelated`, so the art looks exactly the same, while the GPU
+ * fills 4x (2x screens) or 9x (3x screens) fewer pixels.
  */
 export function pixelView(width: number, height: number): View {
   const scale = Math.max(1, Math.round(height / TARGET_HEIGHT))
-  // phones are often 3x: drawing pixel art that sharp looks the same as 2x but costs over twice as much
-  const dpr = Math.min(2, Math.max(1, Math.round(window.devicePixelRatio)))
+  const dpr = 1
   return {
     halfW: width / (PX * scale) / 2,
     halfH: height / (PX * scale) / 2,

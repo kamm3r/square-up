@@ -36,7 +36,8 @@ const touchState = { left: false, right: false, jump: false }
 
 /** Only while playing; in menus, touches are taps on buttons and the gamepad drives the menu. */
 export function setPlaying(value: boolean) {
-  if (value && !playing) ignorePadJump = true // A that started the level isn't a jump
+  if (value === playing) return
+  if (value) ignorePadJump = true // A that started the level isn't a jump
   playing = value
   if (!value) touches.clear()
   updateTouchState()

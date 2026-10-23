@@ -11,6 +11,8 @@ export class Particles {
   }))
   private next = 0
   private readonly matrix = new Matrix4()
+  /** Some particle was alive last frame, so the GPU copy still needs updating. */
+  private active = true
 
   constructor() {
     this.mesh = new InstancedMesh(new PlaneGeometry(PIXEL * 2, PIXEL * 2), new MeshBasicMaterial(), MAX_PARTICLES)
@@ -35,6 +37,10 @@ export class Particles {
   }
 
   update(dt: number) {
+    // nothing alive now or last frame: the GPU already has them all hidden, skip the upload
+    const alive = this.data.some((p) => p.life > 0)
+    if (!alive && !this.active) return
+    this.active = alive
     const m = this.mesh
     this.data.forEach((p, i) => {
       if (p.life > 0) {

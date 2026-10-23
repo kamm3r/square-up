@@ -9,6 +9,17 @@ compiler is a binary in `lib/`, and a Makefile builds it.
 | ![Title screen](docs/start.png) | ![Level 1, First Steps](docs/level-1.png) |
 | ![Level 3, Shuttle Run: moving platforms, crumbling blocks and a spinning saw](docs/shuttle-run.png) | ![Level 4, The Wall: a night level with saws and a spring](docs/the-wall.png) |
 
+## Playing
+
+- **Keyboard:** A/D or arrows to move, Space/W to jump (hold for higher), Esc to pause, R to restart,
+  M to mute.
+- **Controller:** stick or d-pad to move, A to jump, Start to pause, Back to restart. Menus work
+  with it too.
+- **Touch:** left half of the screen moves (slide your thumb), right half jumps.
+- **Ghost:** your best run on each level is saved and replays as a see-through square to race.
+- **Settings:** music and effects volume, screen shake and fullscreen, saved between sessions.
+  The game pauses itself when you switch tabs or apps.
+
 ## Download and play
 
 Grab the program for your system from the
@@ -31,12 +42,15 @@ make serve    # compiles, then serves on http://localhost:5317
 
 You need `curl` and `tar` for `make deps`, and `node` for `make serve`. The dev server is
 `tools/serve.ts`, compiled with the rest; ES modules can't load from `file://`, so the game always
-needs a server, and this one makes the browser pick up every rebuild on a plain refresh.
-`make watch` recompiles on every save.
+needs a server, and this one makes the browser pick up every rebuild on a plain refresh and
+gzips text files (three.js goes from 2.1 MB to 0.4 MB). `make watch` recompiles on every save.
+
+Add `?fps` to the address (e.g. `http://localhost:5317/?fps`) to see the frame rate, the slowest
+frame, how long game logic and drawing take per frame, and the number of draw calls.
 
 `make dist` (needs `go`) builds the downloadable programs into `dist/`. Each one is
-`launcher/main.go` with the game files packed inside: it serves them on `127.0.0.1:47317` and
-opens the browser there.
+`launcher/main.go` with the game files packed inside (text files gzipped): it serves them on
+`127.0.0.1:47317` and opens the browser there.
 
 ## Layout
 

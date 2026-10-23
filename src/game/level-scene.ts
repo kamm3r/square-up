@@ -67,7 +67,7 @@ export class LevelScene {
     return [minX > maxX ? level.width / 2 : Math.min(maxX, Math.max(minX, x)), Math.min(maxY, Math.max(minY, y))]
   }
 
-  private handleEvent(e: SimEvent, starsBefore: boolean[]) {
+  private handleEvent(e: SimEvent) {
     const { sim, frame, fx, level } = this
     const [x, y] = sim.player.position
     const feet = y - PLAYER_SIZE / 2
@@ -99,7 +99,7 @@ export class LevelScene {
         break
       case 'star': {
         playSfx('coin', 0.5)
-        const i = sim.stars.findIndex((got, j) => got && !starsBefore[j])
+        const i = sim.lastStar
         const [sx, sy] = level.stars[Math.max(0, i)]
         fx.emit(sx, sy, 14, '#fbf236', 6, 0.8, 6)
         fx.emit(sx, sy, 6, '#ffffff', 4, 0.8, 6)
@@ -141,14 +141,13 @@ export class LevelScene {
       while (this.acc >= STEP) {
         this.acc -= STEP
         this.events.length = 0
-        const starsBefore = [...sim.stars]
         // the ghost steps in lockstep with the player, and only during play, like the recording
         if (screen === 'playing') {
           this.recorder.record(input)
           this.ghost?.step()
         }
         sim.step(input, this.events)
-        for (const e of this.events) this.handleEvent(e, starsBefore)
+        for (const e of this.events) this.handleEvent(e)
       }
       if (sim.alive && !sim.won && screen === 'playing') {
         this.time += dt

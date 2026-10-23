@@ -164,6 +164,8 @@ export class LevelSim {
   time = 0
   /** Stars collected in this run (lost again on death unless a checkpoint banked them). */
   stars: boolean[]
+  /** Which star the last 'star' event picked up. */
+  lastStar = -1
   private bankedStars: boolean[]
   checkpoint = -1
   /** Sim time each spring last fired, for its bounce animation. */
@@ -400,6 +402,7 @@ export class LevelSim {
       if (this.stars[i]) return
       if (Math.abs(x - sx) < HALF + STAR_HALF && Math.abs(y - sy) < HALF + STAR_HALF) {
         this.stars[i] = true
+        this.lastStar = i
         events.push('star')
       }
     })

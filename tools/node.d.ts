@@ -5,6 +5,7 @@ declare module 'node:http' {
   interface IncomingMessage {
     url?: string
     method?: string
+    headers: Record<string, string | string[] | undefined>
   }
   interface ServerResponse {
     writeHead(status: number, headers?: Record<string, string | number>): void
@@ -19,5 +20,9 @@ declare module 'node:http' {
 
 declare module 'node:fs/promises' {
   function readFile(path: URL): Promise<Uint8Array>
-  function stat(path: URL): Promise<{ isDirectory(): boolean }>
+  function stat(path: URL): Promise<{ isDirectory(): boolean; mtimeMs: number }>
+}
+
+declare module 'node:zlib' {
+  function gzipSync(data: Uint8Array): Uint8Array
 }

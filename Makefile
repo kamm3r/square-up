@@ -65,6 +65,7 @@ dist: all
 	cd build && find src -name '*.js' -exec install -D -m 644 {} ../$(GAME)/build/{} \;
 	cp lib/three/three.module.js lib/three/three.core.js lib/three/LICENSE $(GAME)/lib/three/
 	cp lib/p2-es/p2-es.js lib/p2-es/LICENSE $(GAME)/lib/p2-es/
+	find $(GAME) -type f \( -name '*.js' -o -name '*.css' -o -name '*.html' -o -name '*.svg' \) -exec gzip -9 -n {} +
 	@for p in $(PLATFORMS); do \
 		os=$${p%%/*}; rest=$${p#*/}; arch=$${rest%%/*}; name=$${rest#*/}; \
 		echo "  dist/square-up-$$name"; \
